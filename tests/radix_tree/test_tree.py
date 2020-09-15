@@ -86,4 +86,3 @@ def test_get_handler(
     result, ctx = new_tree.get_handler("/claw/")
     assert ctx == {}
     assert result == "B"
-

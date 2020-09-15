@@ -1,3 +1,4 @@
+import random
 import typing
 
 import pytest
@@ -25,10 +26,20 @@ def simple_tree() -> SimpleTree:
     root.children = node.NodeChildSet((co_parent,))
 
     co_parent.children = node.NodeChildSet((node.StaticNode("ntact"), comp_parent))
-    comp_parent.children = node.NodeChildSet((pany_parent, node.StaticNode("e"),))
+    comp_parent.children = node.NodeChildSet(
+        (
+            pany_parent,
+            node.StaticNode("e"),
+        )
+    )
     return root, co_parent, comp_parent, pany_parent
 
 
+# # # # # # # # # # # # # # # # # # # #
+# #
+# PrefixSearchResult
+# #
+# # # # # # # # # # # # # # # # # # # #
 def test_prefix_search_result() -> None:
     psr = node.PrefixSearchResult(node.StaticNode("path!"), 1, "", "")
     assert psr.complete_match
@@ -44,10 +55,91 @@ def test_prefix_search_result() -> None:
     assert "b" in str(psr)
 
 
+# # # # # # # # # # # # # # # # # # # #
+# #
+# NodeChildSet
+# #
+# # # # # # # # # # # # # # # # # # # #
+@pytest.fixture()
+def some_nodes() -> typing.List[node.RadixNode]:
+    nodes = [
+        node.DynamicNode(
+            utils.DynamicParseNode(
+                "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}",
+                "name",
+                regex="[a-zA-Z][0-9]{2}[a-zA-Z0-9]*",
+            )
+        ),
+        node.DynamicNode(
+            utils.DynamicParseNode(
+                "{test}",
+                "test",
+                regex=None,
+            )
+        ),
+        node.StaticNode("/a"),
+        node.StaticNode("/b"),
+    ]
+    return nodes
+
+
+def test_childset_ctor(some_nodes: typing.List[node.RadixNode]) -> None:
+    random.shuffle(some_nodes)
+    childset = node.NodeChildSet(some_nodes)
+    assert len(childset.static_nodes) == 2
+    assert len(childset.dynamic_nodes) == 2
+
+
+def test_childset_add(some_nodes: typing.List[node.RadixNode]) -> None:
+    childset = node.NodeChildSet(some_nodes)
+    # We will make some unlikely nodes here in order to test the swap
+    childset.add(node.StaticNode("{test}"))
+    assert len(childset.static_nodes) == 3
+    assert len(childset.dynamic_nodes) == 1
+    assert len(childset) == 4
+    childset.add(node.DynamicNode(utils.DynamicParseNode("/b", "test", regex=None)))
+    assert len(childset.static_nodes) == 2
+    assert len(childset.dynamic_nodes) == 2
+    assert len(childset) == 4
+
+
+def test_childset_discard(some_nodes: typing.List[node.RadixNode]) -> None:
+    childset = node.NodeChildSet(some_nodes)
+    childset.discard(some_nodes[1])
+    assert len(childset.dynamic_nodes) == 1
+    assert next(iter(childset.dynamic_nodes)) == some_nodes[0]
+
+    childset.discard(some_nodes[-1])
+    assert len(childset.static_nodes) == 1
+    assert next(iter(childset.static_nodes)) == some_nodes[2]
+
+    assert len(childset) == 2
+
+
+def test_various_dunder(some_nodes: typing.List[node.RadixNode]) -> None:
+    childset = node.NodeChildSet(some_nodes)
+    child_list = list(childset)
+    for item in child_list[:2]:
+        assert isinstance(item, node.StaticNode)
+    for item in child_list[2:]:
+        assert isinstance(item, node.DynamicNode)
+
+    for item in some_nodes:
+        assert item in childset
+
+    assert len(childset) == len(some_nodes)
+    assert "<NodeChildSet" in repr(childset)
+
+
+# # # # # # # # # # # # # # # # # # # #
+# #
+# RadixNode
+# #
+# # # # # # # # # # # # # # # # # # # #
 def test_radix_node_dunder(static_node: node.RadixNode) -> None:
     sn2 = node.StaticNode(
         static_node.path,
-        children=node.NodeChildSet({"hey": node.StaticNode("now")}),
+        children=node.NodeChildSet({node.StaticNode("now")}),
         separator="::",
     )
     # for now we compare _only_ paths
@@ -124,7 +216,12 @@ def test_large_tree_search_path_static(
         ("/dcb/test", True, "{tool}", {"tool": "test"}),
         ("/dcb/test/3", True, "{sub}", {"tool": "test", "sub": "3"}),
         ("/src/", False, "", {}),
-        ("/src/some/file.png", False, "", {"filepath": "some"},),
+        (
+            "/src/some/file.png",
+            False,
+            "",
+            {"filepath": "some"},
+        ),
         ("/search", True, "earch", {}),
         (
             "/search/someth!ng+in+ünìcodé",
@@ -140,7 +237,12 @@ def test_large_tree_search_path_static(
             "{filepath:*}",
             {"dir": "js", "filepath": "framework.js"},
         ),
-        ("/files/js/inc/framework.js", False, "", {"dir": "js", "filepath": "inc"},),
+        (
+            "/files/js/inc/framework.js",
+            False,
+            "",
+            {"dir": "js", "filepath": "inc"},
+        ),
         ("/info/erik/public", True, "/public", {"user": "erik"}),
         (
             "/info/erik/project/tokamak",
@@ -187,7 +289,11 @@ def test_radix_tree_prefix_search_dynamic(simple_tree: SimpleTree) -> None:
     root, co_parent, comp_parent, pany_parent = simple_tree
     pattern = "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}"
     dyn_node = node.DynamicNode(
-        utils.DynamicParseNode(pattern, "name", regex=pattern[6:-1],)
+        utils.DynamicParseNode(
+            pattern,
+            "name",
+            regex=pattern[6:-1],
+        )
     )
     new_slash_node = pany_parent.insert_node(node.StaticNode("/"))
     new_slash_node.insert_node(dyn_node)
