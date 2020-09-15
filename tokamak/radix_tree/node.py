@@ -115,7 +115,7 @@ class NodeChildSet(MutableSet):
         return len(self.static_nodes) + len(self.dynamic_nodes)
 
     def __repr__(self) -> str:
-        return "<{classname}(.|S|. {static_nodes}) (.|D|. {dynamic_nodes})>".format(
+        return "<tokamak.radix_tree.node.{classname}(.|S|. {static_nodes}) (.|D|. {dynamic_nodes})>".format(
             classname=type(self).__name__,
             static_nodes=repr(self.static_nodes),
             dynamic_nodes=repr(self.dynamic_nodes),
@@ -158,16 +158,20 @@ class RadixNode(Generic[V]):
             "with child count {childlen} at {lookup}>"
         )
         return self_string.format(
-            cls=self.__class__.__name__,
+            cls=type(self).__name__,
             path=self.path,
             childlen=len(self.children),
             lookup=hex(id(self)),
         )
 
     def __repr__(self) -> str:
-        return "<tokamak.node.{classname} '{path}' at {loc}>".format(
+        return "<tokamak.radix_tree.node.{classname} '{path}' at {loc}>".format(
             classname=type(self).__name__, path=self.path, loc=hex(id(self))
         )
+
+    def __len__(self) -> int:
+        """Returns count of all nodes in the tree"""
+        return 1 + sum(len(ch) for ch in self.children)
 
     def clone(self, path: Optional[str] = None) -> "RadixNode":  # type: ignore # pragma: no cover
         raise NotImplementedError("`clone` must be implemented in the child classes")
@@ -239,10 +243,7 @@ class RadixNode(Generic[V]):
         new_path_root = path_to_tree(path, handler)
         return self.insert_node(new_path_root)
 
-    def prefix_search(
-        self,
-        prefix: str,
-    ) -> Iterator[PrefixSearchResult]:
+    def prefix_search(self, prefix: str,) -> Iterator[PrefixSearchResult]:
         """
         Searches a prefix and yields all nodes that match.
 
@@ -263,9 +264,7 @@ class RadixNode(Generic[V]):
         return None
 
     def search_path(
-        self,
-        path: str,
-        context: Optional[Dict[str, str]] = None,
+        self, path: str, context: Optional[Dict[str, str]] = None,
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
@@ -333,10 +332,7 @@ class StaticNode(RadixNode):
 
         children = copy.deepcopy(self.children)
         new_node = StaticNode(
-            path,
-            children=children,
-            leaf=self.leaf,
-            separator=self.separator,
+            path, children=children, leaf=self.leaf, separator=self.separator,
         )
         return new_node
 
@@ -351,10 +347,7 @@ class StaticNode(RadixNode):
             self.leaf = None
         return self
 
-    def prefix_search(
-        self,
-        prefix: str,
-    ) -> Iterator[PrefixSearchResult]:
+    def prefix_search(self, prefix: str,) -> Iterator[PrefixSearchResult]:
         """
         Searches a prefix and yields all nodes that match.
 
@@ -383,9 +376,7 @@ class StaticNode(RadixNode):
             yield PrefixSearchResult(self, index, unmatched, remaining)
 
     def search_path(
-        self,
-        path: str,
-        context: Optional[Dict[str, str]] = None,
+        self, path: str, context: Optional[Dict[str, str]] = None,
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
@@ -492,6 +483,11 @@ class DynamicNode(RadixNode):
         return None, matched_vars
 
 
+# # # # # # # # # # # # # # # # # # # #
+# #
+# Helpers
+# #
+# # # # # # # # # # # # # # # # # # # #
 def node_map(
     element: Union[utils.DynamicParseNode, str]
 ) -> Union[DynamicNode, StaticNode]:
@@ -508,7 +504,7 @@ def node_map(
 def path_to_tree(path: str, handler: Any) -> RadixNode:
     """
     Create a _new_ tree out of this path. Because this is a new node, it
-    should contain only simple `parent.children = {child.path: path}` relationships.
+    should contain only simple `parent.children = {child-node}` relationships.
 
     Returns root node.
     """
@@ -549,15 +545,14 @@ def merge_nodes(into: RadixNode, merge_node: RadixNode) -> RadixNode:
         into.children = NodeChildSet(new_children)
         return into
 
-    # Poor prerformance: look for algo for merging radix trees
+    # Poor performance: look for algo for merging radix trees
     # On the plus: if `prefix_search` is accurate, then our insertion point
     # is lowest possible point on the tree.
     shared = into.children & merge_node.children
     into_child_shared = {nd.path: nd for nd in into.children if nd in shared}
     merge_child_shared = {nd.path: nd for nd in merge_node.children if nd in shared}
 
-    different_children = into.children - merge_node.children
-    different_children |= merge_node.children - into.children
+    different_children = (into.children | merge_node.children) - shared
     into.children = NodeChildSet(different_children)
 
     for nd in shared:
