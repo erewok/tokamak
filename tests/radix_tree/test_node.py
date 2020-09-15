@@ -25,12 +25,7 @@ def simple_tree() -> SimpleTree:
     root.children = node.NodeChildSet((co_parent,))
 
     co_parent.children = node.NodeChildSet((node.StaticNode("ntact"), comp_parent))
-    comp_parent.children = node.NodeChildSet(
-        (
-            pany_parent,
-            node.StaticNode("e"),
-        )
-    )
+    comp_parent.children = node.NodeChildSet((pany_parent, node.StaticNode("e"),))
     return root, co_parent, comp_parent, pany_parent
 
 
@@ -129,12 +124,7 @@ def test_large_tree_search_path_static(
         ("/dcb/test", True, "{tool}", {"tool": "test"}),
         ("/dcb/test/3", True, "{sub}", {"tool": "test", "sub": "3"}),
         ("/src/", False, "", {}),
-        (
-            "/src/some/file.png",
-            False,
-            "",
-            {"filepath": "some"},
-        ),
+        ("/src/some/file.png", False, "", {"filepath": "some"},),
         ("/search", True, "earch", {}),
         (
             "/search/someth!ng+in+ünìcodé",
@@ -150,12 +140,7 @@ def test_large_tree_search_path_static(
             "{filepath:*}",
             {"dir": "js", "filepath": "framework.js"},
         ),
-        (
-            "/files/js/inc/framework.js",
-            False,
-            "",
-            {"dir": "js", "filepath": "inc"},
-        ),
+        ("/files/js/inc/framework.js", False, "", {"dir": "js", "filepath": "inc"},),
         ("/info/erik/public", True, "/public", {"user": "erik"}),
         (
             "/info/erik/project/tokamak",
@@ -202,11 +187,7 @@ def test_radix_tree_prefix_search_dynamic(simple_tree: SimpleTree) -> None:
     root, co_parent, comp_parent, pany_parent = simple_tree
     pattern = "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}"
     dyn_node = node.DynamicNode(
-        utils.DynamicParseNode(
-            pattern,
-            "name",
-            regex=pattern[6:-1],
-        )
+        utils.DynamicParseNode(pattern, "name", regex=pattern[6:-1],)
     )
     new_slash_node = pany_parent.insert_node(node.StaticNode("/"))
     new_slash_node.insert_node(dyn_node)

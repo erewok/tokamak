@@ -3,10 +3,6 @@ from typing import Any, Dict, Tuple
 
 from . import node
 
-LAST_CHILD = "└──  "
-MIDDLE_CHILD = "├──  "
-BAR = "│    "
-
 
 class TrailingSlashMatch(enum.Enum):
     STRICT = 1
@@ -35,14 +31,21 @@ class Tree:
             raise ValueError("Path must start with '{}'".format(self.separator))
 
         if (
-            self.trailing_slash_match == TrailingSlashMatch.RELAXED
+            self.trailing_slash_match is TrailingSlashMatch.RELAXED
             and len(path) > 1
-            and path.endswith(self.separator)
+            and path[-1] == self.separator
         ):
             path = path[:-1]
         self._root.insert(path, handler)
 
     def get_handler(self, path: str) -> Tuple[Any, Dict[str, str]]:
+        if (
+            self.trailing_slash_match is TrailingSlashMatch.RELAXED
+            and len(path) > 1
+            and path[-1] == self.separator
+        ):
+            path = path[:-1]
+
         context: Dict[str, str] = {}
         result, context = self._root.search_path(path, context=context)
         if result and result.leaf and result.leaf.handler:
