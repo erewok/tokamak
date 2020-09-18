@@ -199,11 +199,10 @@ class RadixNode(Generic[V]):
                 return node
             else:
                 return merge_nodes(psr.node, node)
-        elif not psr.left_side_remaining and psr.right_side_remaining:
+        else:
             node.path = psr.right_side_remaining
             psr.node.children.add(node)
             return node
-        return node
 
     def insert_node(self, node: "RadixNode") -> "RadixNode":
         if not self.children and len(self.path) == 0:
@@ -211,7 +210,10 @@ class RadixNode(Generic[V]):
             return node
         # we compare paths directly here because no children (instead of prefix search)
         elif not self.children and self.path == node.path:
-            if not self.leaf:
+            if self.leaf and node.leaf:
+                msg = "Merge conflict: duplicate nodes both have handler for path '{}'"
+                raise ValueError(msg.format(self.path))
+            elif not self.leaf and node.leaf:
                 self.leaf = node.leaf
             self.children = node.children
             return self
@@ -513,13 +515,14 @@ def path_to_tree(path: str, handler: Any) -> RadixNode:
         raise ValueError("`path_to_tree` called with inscrutable path")
 
     new_path_root = path_nodes[0][1]
-    if len(path_nodes) == 1:
+    if len(path_nodes) == 1 and handler is not None:
         new_path_root.leaf = LeafNode(handler=handler)
     else:
         last_node_idx = len(path_nodes) - 1
         latest_root: RadixNode = new_path_root
         for idx, node in path_nodes[1:]:
-            node.leaf = LeafNode(handler=handler) if idx == last_node_idx else None
+            if handler is not None and idx == last_node_idx:
+                node.leaf = LeafNode(handler=handler)
             latest_root = latest_root.insert_node(node)
 
     return new_path_root

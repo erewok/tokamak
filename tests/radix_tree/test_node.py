@@ -18,6 +18,17 @@ def static_node() -> node.RadixNode:
 
 
 @pytest.fixture()
+def dynamic_node() -> node.RadixNode:
+    return node.DynamicNode(
+        utils.DynamicParseNode(
+            "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}",
+            "name",
+            regex="[a-zA-Z][0-9]{2}[a-zA-Z0-9]*",
+        )
+    )
+
+
+@pytest.fixture()
 def simple_tree() -> SimpleTree:
     root = node.StaticNode("/")
     co_parent = node.StaticNode("co")
@@ -56,15 +67,9 @@ def test_prefix_search_result() -> None:
 # #
 # # # # # # # # # # # # # # # # # # # #
 @pytest.fixture()
-def some_nodes() -> typing.List[node.RadixNode]:
+def some_nodes(dynamic_node: node.RadixNode) -> typing.List[node.RadixNode]:
     nodes = [
-        node.DynamicNode(
-            utils.DynamicParseNode(
-                "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}",
-                "name",
-                regex="[a-zA-Z][0-9]{2}[a-zA-Z0-9]*",
-            )
-        ),
+        dynamic_node,
         node.DynamicNode(utils.DynamicParseNode("{test}", "test", regex=None,)),
         node.StaticNode("/a"),
         node.StaticNode("/b"),
@@ -125,7 +130,7 @@ def test_various_dunder(some_nodes: typing.List[node.RadixNode]) -> None:
 # RadixNode
 # #
 # # # # # # # # # # # # # # # # # # # #
-def test_radix_node_dunder(static_node: node.RadixNode) -> None:
+def test_radix_node_dunder(static_node: node.StaticNode) -> None:
     sn2 = node.StaticNode(
         static_node.path,
         children=node.NodeChildSet({node.StaticNode("now")}),
@@ -149,19 +154,20 @@ def test_radix_node_dunder(static_node: node.RadixNode) -> None:
     assert len(sn3) == 1
 
 
-def test_tree_as_str(large_tree: Tree) -> None:
-    result = large_tree._root.tree_as_str()
-    assert result.startswith("├── * <-root->")
-    nested_childrens = (
-        # cannot guarantee which of these will be last child
-        "── a/b/c/d/e/\n",
-        "             └── /g/h <*>\n",
-        "── g <*>\n",
-        "── f <*>\n ",
-        "── h <*>\n",
+def test_insert_dynamic_node(dynamic_node: node.DynamicNode) -> None:
+    dyn_node = node.DynamicNode(
+        utils.DynamicParseNode(
+            "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}",
+            "name",
+            regex="[a-zA-Z][0-9]{2}[a-zA-Z0-9]*",
+        )
     )
-    for child in nested_childrens:
-        assert child in result
+    complete_psr = node.PrefixSearchResult(dyn_node, 5, "", "")
+    assert dyn_node.insert_dynamic_node(dynamic_node, complete_psr) is dyn_node
+
+    incomplete_psr = node.PrefixSearchResult(dynamic_node, 5, "left", "right")
+    with pytest.raises(ValueError):
+        dyn_node.insert_dynamic_node(dynamic_node, incomplete_psr)
 
 
 @pytest.mark.parametrize(
@@ -231,14 +237,15 @@ def test_large_tree_search_path_static_paths(
             {"dir": "js", "filepath": "framework.js"},
         ),
         ("/files/js/inc/framework.js", False, "", {"dir": "js", "filepath": "inc"},),
-        ("/info/erik/public", True, "/public", {"user": "erik"}),
+        ("/info", False, "", {}),
+        ("/info/erik", True, "{user}", {"user": "erik"}),
+        ("/info/erik/project", True, "/project", {"user": "erik"}),
         (
             "/info/erik/project/tokamak",
             True,
             "{project}",
             {"user": "erik", "project": "tokamak"},
         ),
-        ("/info/erik", False, "", {}),
     ),
 )
 def test_large_tree_search_path_dynamic_paths(  # type: ignore
@@ -273,18 +280,17 @@ def test_radix_tree_prefix_search_static(simple_tree: SimpleTree) -> None:
     assert len(noresult) == 0
 
 
-def test_radix_tree_prefix_search_dynamic(simple_tree: SimpleTree) -> None:
+def test_radix_tree_prefix_search_dynamic(
+    simple_tree: SimpleTree, dynamic_node: node.RadixNode
+) -> None:
     root, co_parent, comp_parent, pany_parent = simple_tree
     pattern = "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}"
-    dyn_node = node.DynamicNode(
-        utils.DynamicParseNode(pattern, "name", regex=pattern[6:-1],)
-    )
     new_slash_node = pany_parent.insert_node(node.StaticNode("/"))
-    new_slash_node.insert_node(dyn_node)
+    new_slash_node.insert_node(dynamic_node)
 
     result = list(root.prefix_search("/company/{}".format(pattern)))
     assert len(result) == 6
-    assert result[0].node is dyn_node
+    assert result[0].node is dynamic_node
     assert result[1].node is new_slash_node
     assert result[2].node is pany_parent
     assert result[3].node is comp_parent
@@ -292,20 +298,15 @@ def test_radix_tree_prefix_search_dynamic(simple_tree: SimpleTree) -> None:
     assert result[5].node is root
 
 
-def test_radix_tree_search_path_dynamic(simple_tree: SimpleTree) -> None:
-    root, _, comp_parent, pany_parent = simple_tree
-    dyn_node = node.DynamicNode(
-        utils.DynamicParseNode(
-            "{name:[a-zA-Z][0-9]{2}[a-zA-Z0-9]*}",
-            "name",
-            regex="[a-zA-Z][0-9]{2}[a-zA-Z0-9]*",
-        )
-    )
+def test_radix_tree_search_path_dynamic(
+    simple_tree: SimpleTree, dynamic_node: node.RadixNode
+) -> None:
+    root, _, _, pany_parent = simple_tree
     new_slash_node = pany_parent.insert_node(node.StaticNode("/"))
-    new_slash_node.insert_node(dyn_node)
+    new_slash_node.insert_node(dynamic_node)
     found_node, context = root.search_path("/company/a01a3a4")
 
-    assert found_node is dyn_node
+    assert found_node is dynamic_node
     assert context == {"name": "a01a3a4"}
 
     no_result, no_context = root.search_path("/company/__**__")
@@ -332,6 +333,57 @@ def test_radix_tree_prefix_search_large(
     expected_answer_iter = zip(parent_paths, large_tree._root.prefix_search(path))
     for expected, psr in expected_answer_iter:
         assert expected == psr.node.path
+
+
+def test_tree_as_str(large_tree: Tree) -> None:
+    result = large_tree._root.tree_as_str()
+    assert result.startswith("├── * <-root->")
+    nested_childrens = (
+        # cannot guarantee which of these will be last child
+        "── a/b/c/d/e/\n",
+        "             └── /g/h <*>\n",
+        "── g <*>\n",
+        "── f <*>\n ",
+        "── h <*>\n",
+    )
+    for child in nested_childrens:
+        assert child in result
+
+
+# # # # # # # # # # # # # # # # # # # #
+# #
+# Test StaticNode
+# #
+# # # # # # # # # # # # # # # # # # # #
+def test_static_node_init_and_clone(static_node: node.StaticNode) -> None:
+    with pytest.raises(ValueError):
+        node.StaticNode("")
+    sn1 = node.StaticNode(
+        "//bla", leaf=node.LeafNode("Handle"), children=node.NodeChildSet([static_node])
+    )
+    cloned_sn1 = sn1.clone()
+    assert cloned_sn1.children == sn1.children
+    assert cloned_sn1.path == sn1.path
+    assert cloned_sn1.leaf == sn1.leaf
+
+
+def test_static_node_split(static_node: node.StaticNode) -> None:
+    cached_path = static_node.path
+    static_node.leaf = node.LeafNode("A")
+    assert static_node.split(2) is static_node
+    assert static_node.path == cached_path[:2]
+    assert len(static_node.children) == 1
+    first_child = next(iter(static_node.children))
+    assert first_child.path == cached_path[2:]
+    assert static_node.leaf is None
+    assert first_child.leaf is not None and first_child.leaf.handler == "A"
+
+
+# # # # # # # # # # # # # # # # # # # #
+# #
+# Test DynamicNode
+# #
+# # # # # # # # # # # # # # # # # # # #
 
 
 # # # # # # # # # # # # # # # # # # # #
@@ -386,7 +438,7 @@ def test_node_map(element, result):  # type: ignore
         ),
     ),
 )
-def test_path_to_tree(path, query, leaf_path, tree_depth):  # type: ignore
+def test_path_to_tree(path: str, query: str, leaf_path: str, tree_depth: int) -> None:
     if tree_depth == 0:
         with pytest.raises(ValueError):
             new_node = node.path_to_tree(path, "A")
@@ -394,6 +446,42 @@ def test_path_to_tree(path, query, leaf_path, tree_depth):  # type: ignore
         new_node = node.path_to_tree(path, "A")
         assert len(new_node) == tree_depth
         leaf, _ = new_node.search_path(query)
+        assert leaf is not None
         assert leaf.leaf is not None
         assert leaf.path == leaf_path
         assert leaf.leaf.handler == "A"
+
+
+@pytest.mark.parametrize(
+    "into_path,merge_node_path,handlers",
+    (
+        (
+            (
+                "/",
+                "/",
+                {"left": "LEFT", "right": "RIGHT", "result": None, "error": True},
+            ),
+            (
+                "/",
+                "/",
+                {"left": "LEFT", "right": None, "result": "LEFT", "error": False},
+            ),
+            (
+                "/",
+                "/",
+                {"left": None, "right": "RIGHT", "result": "RIGHT", "error": False},
+            ),
+        )
+    ),
+)
+def test_merge_nodes(into_path: str, merge_node_path: str, handlers: dict) -> None:
+    into = node.path_to_tree(into_path, handlers["left"])
+    merge_node = node.path_to_tree(merge_node_path, handlers["right"])
+    if handlers["error"]:
+        with pytest.raises(ValueError):
+            node.merge_nodes(into, merge_node)
+    else:
+        result = node.merge_nodes(into, merge_node)
+        assert result is into
+        if handlers["result"]:
+            assert result.leaf is not None and result.leaf.handler == handlers["result"]

@@ -27,8 +27,11 @@ TEST_ROUTES = [
     "/doc/",
     "/doc/code_faq.html",
     "/doc/code1.html",
-    "/info/{user}/public",
+    "/info/{user}",
+    "/info/{user}/project",
     "/info/{user}/project/{project}",
+    "/info/{user}/project/{project}/dept",
+    "/info/{user}/project/{project}/dept/{dept}",
     "/regex/{name:[a-zA-Z]+}/test",
     (
         "/optional/{name:[a-zA-Z]+}/{word}/plus/"
