@@ -154,6 +154,25 @@ def test_radix_node_dunder(static_node: node.StaticNode) -> None:
     assert len(sn3) == 1
 
 
+def test_insert_node_various(static_node: node.StaticNode) -> None:
+    path_orig = "/a/b/c/d/e/f"
+    sn2 = node.StaticNode(path_orig)
+    static_node.children = node.NodeChildSet({node.StaticNode("now")})
+    static_node.insert_node(sn2)
+    # path has been chopped to only the remainder:
+    assert sn2.path == "/f"
+    result, _ = static_node.search_path(path_orig)
+    assert result is not None and result == sn2
+    with pytest.raises(ValueError) as exc:
+        # unknown nodetype
+        static_node.insert_node(node.RadixNode("/a/b/c/d/e/f/g"))
+    assert "Unknown nodetype" in str(exc)
+    with pytest.raises(ValueError) as exc:
+        # no psr
+        static_node.insert_node(node.StaticNode("bla"))
+    assert "Failed inserting node with path" in str(exc)
+
+
 def test_insert_dynamic_node(dynamic_node: node.DynamicNode) -> None:
     dyn_node = node.DynamicNode(
         utils.DynamicParseNode(
@@ -173,6 +192,7 @@ def test_insert_dynamic_node(dynamic_node: node.DynamicNode) -> None:
 @pytest.mark.parametrize(
     "path,has_handler,node_path",
     (
+        ("", False, ""),
         ("/", True, "/"),
         ("/c", True, "c"),
         ("/a/b/c/d/e/f/g/h", True, "/g/h"),
@@ -384,6 +404,10 @@ def test_static_node_split(static_node: node.StaticNode) -> None:
 # Test DynamicNode
 # #
 # # # # # # # # # # # # # # # # # # # #
+def test_dyn_node_init_and_clone(dynamic_node: node.DynamicNode) -> None:
+    new_dyn = dynamic_node.clone()
+    assert new_dyn is not dynamic_node
+    assert new_dyn.path == dynamic_node.path
 
 
 # # # # # # # # # # # # # # # # # # # #
