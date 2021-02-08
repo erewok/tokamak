@@ -3,7 +3,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies
 
-from tokamak.http import methods
+from tokamak.web import methods
 
 
 @given(strategies.sampled_from(methods.Method))
