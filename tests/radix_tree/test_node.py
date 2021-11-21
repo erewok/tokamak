@@ -37,7 +37,12 @@ def simple_tree() -> SimpleTree:
     root.children = node.NodeChildSet((co_parent,))
 
     co_parent.children = node.NodeChildSet((node.StaticNode("ntact"), comp_parent))
-    comp_parent.children = node.NodeChildSet((pany_parent, node.StaticNode("e"),))
+    comp_parent.children = node.NodeChildSet(
+        (
+            pany_parent,
+            node.StaticNode("e"),
+        )
+    )
     return root, co_parent, comp_parent, pany_parent
 
 
@@ -70,7 +75,13 @@ def test_prefix_search_result() -> None:
 def some_nodes(dynamic_node: node.RadixNode) -> typing.List[node.RadixNode]:
     nodes = [
         dynamic_node,
-        node.DynamicNode(utils.DynamicParseNode("{test}", "test", regex=None,)),
+        node.DynamicNode(
+            utils.DynamicParseNode(
+                "{test}",
+                "test",
+                regex=None,
+            )
+        ),
         node.StaticNode("/a"),
         node.StaticNode("/b"),
     ]
@@ -136,7 +147,11 @@ def test_radix_node_dunder(static_node: node.StaticNode) -> None:
         children=node.NodeChildSet({node.StaticNode("now")}),
         separator="::",
     )
-    sn3 = node.StaticNode("another_path", children=None, separator=";",)
+    sn3 = node.StaticNode(
+        "another_path",
+        children=None,
+        separator=";",
+    )
     # for now we compare _only_ paths
     assert static_node == sn2
     assert static_node != sn3
@@ -240,7 +255,12 @@ def test_large_tree_search_path_static_paths(
         ("/dcb/test", True, "{tool}", {"tool": "test"}),
         ("/dcb/test/3", True, "{sub}", {"tool": "test", "sub": "3"}),
         ("/src/", False, "", {}),
-        ("/src/some/file.png", False, "", {"filepath": "some"},),
+        (
+            "/src/some/file.png",
+            False,
+            "",
+            {"filepath": "some"},
+        ),
         ("/search", True, "earch", {}),
         (
             "/search/someth!ng+in+ünìcodé",
@@ -256,7 +276,12 @@ def test_large_tree_search_path_static_paths(
             "{filepath:*}",
             {"dir": "js", "filepath": "framework.js"},
         ),
-        ("/files/js/inc/framework.js", False, "", {"dir": "js", "filepath": "inc"},),
+        (
+            "/files/js/inc/framework.js",
+            False,
+            "",
+            {"dir": "js", "filepath": "inc"},
+        ),
         ("/info", False, "", {}),
         ("/info/erik", True, "{user}", {"user": "erik"}),
         ("/info/erik/project", True, "/project", {"user": "erik"}),

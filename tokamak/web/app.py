@@ -7,7 +7,6 @@ import trio
 from tokamak.web import methods, router
 from tokamak.web.request import Request
 
-
 logger = logging.getLogger("tokamak")
 
 

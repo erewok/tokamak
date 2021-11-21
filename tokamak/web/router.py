@@ -28,7 +28,9 @@ class Route:
         self.handler = handler
         self.path = path
         self.methods = (
-            set((m.upper() for m in methods)) if methods else {tokmethods.Method.GET.value}
+            set((m.upper() for m in methods))
+            if methods
+            else {tokmethods.Method.GET.value}
         )
 
     def can_handle(self, method: str):
