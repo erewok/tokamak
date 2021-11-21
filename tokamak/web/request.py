@@ -9,7 +9,6 @@ class Request:
         self.responder = response_chan
         self.background = background_chan
 
-
     async def respond_with(self, response: Response):
         async with self.responder:
             await self.responder.send(response)

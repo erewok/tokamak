@@ -9,7 +9,7 @@ class Response:
         body: bytes = b"",
         content_type: str = "text/plain",
         charset: str = "utf-8",
-        streaming: bool = False
+        streaming: bool = False,
     ) -> None:
         self.status_code = status_code
         self.streaming_body = False
@@ -18,7 +18,7 @@ class Response:
         self.content_type = content_type
         self.charset = charset
         self.streaming = streaming
-    
+
     @cached_property
     def raw_headers(self):
         raw_headers = [

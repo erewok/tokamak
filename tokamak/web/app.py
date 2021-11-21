@@ -1,13 +1,11 @@
-from functools import wraps
 import logging
+from functools import wraps
 from typing import Iterable, Optional, Tuple
 
 import trio
 
-from tokamak.web import methods
+from tokamak.web import methods, router
 from tokamak.web.request import Request
-from tokamak.web import router
-
 
 logger = logging.getLogger("tokamak")
 
@@ -19,10 +17,11 @@ class Tokamak:
     in-memory-channels to send back a Response and to schedule background
     work.
     """
+
     def __init__(
-        self, 
-        router: Optional[router.AsgiRouter] = None, 
-        background_task_limit: int = 10
+        self,
+        router: Optional[router.AsgiRouter] = None,
+        background_task_limit: int = 10,
     ):
         self.router = router
         # The channel limit, not total limit; will apply back-pressure
@@ -52,7 +51,7 @@ class Tokamak:
         request = Request(context, scope, receive, resp_send_chan, bg_send_chan)
 
         await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
-        
+
         async with resp_recv_chan:
             async for response in resp_recv_chan:
                 await send(
@@ -64,8 +63,16 @@ class Tokamak:
                 )
                 if response.streaming:
                     async for chunk in response.streaming_body:
-                        await send({"type": "http.response.body", "body": chunk, "more_body": True})
-                    await send({"type": "http.response.body", "body": b"", "more_body": False})
+                        await send(
+                            {
+                                "type": "http.response.body",
+                                "body": chunk,
+                                "more_body": True,
+                            }
+                        )
+                    await send(
+                        {"type": "http.response.body", "body": b"", "more_body": False}
+                    )
                 else:
                     await send({"type": "http.response.body", "body": response.body})
 

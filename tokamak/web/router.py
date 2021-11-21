@@ -27,7 +27,9 @@ class Route:
             raise ValueError("Missing `handler` function for path: {}".format(path))
         self.handler = handler
         self.path = path
-        self.methods = set((m.upper() for m in methods)) if methods else {methods.Method.GET.value}
+        self.methods = (
+            set((m.upper() for m in methods)) if methods else {methods.Method.GET.value}
+        )
 
     def can_handle(self, method: str):
         return method in self.methods
