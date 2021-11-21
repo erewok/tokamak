@@ -7,6 +7,7 @@ import trio
 from tokamak.web import methods, router
 from tokamak.web.request import Request
 
+
 logger = logging.getLogger("tokamak")
 
 
@@ -31,10 +32,10 @@ class Tokamak:
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
-                logger.warn("Starting tokamak")
+                logger.warn("========·°·°~> Starting tokamak °°···°°🚀···°° ")
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
-                logger.warn("Shutting down tokamak")
+                logger.warn("~°°···°°°~ Shutting down tokamak ~°°···🚉···°°°~ ")
                 await send({"type": "lifespan.shutdown.complete"})
                 return
 
