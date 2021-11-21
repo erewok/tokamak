@@ -1,7 +1,7 @@
 from typing import Callable, Iterable, Optional
 
 from tokamak.radix_tree import tree
-from tokamak.web import methods
+from tokamak.web import methods as tokmethods
 
 
 class RouterError(ValueError):
@@ -28,13 +28,13 @@ class Route:
         self.handler = handler
         self.path = path
         self.methods = (
-            set((m.upper() for m in methods)) if methods else {methods.Method.GET.value}
+            set((m.upper() for m in methods)) if methods else {tokmethods.Method.GET.value}
         )
 
     def can_handle(self, method: str):
         return method in self.methods
 
-    async def __call__(self, *args, method=methods.Method.GET.value, **kwargs):
+    async def __call__(self, *args, method=tokmethods.Method.GET.value, **kwargs):
         if not self.can_handle(method):
             raise MethodNotAllowed(f"{method} not allowed for {self.path}")
         return await self.handler(*args, **kwargs)

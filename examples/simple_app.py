@@ -5,7 +5,7 @@ from hypercorn.config import Config
 from hypercorn.trio import serve
 import trio
 
-from tokamak.web import Route, AsgiRouter, Tokamak
+from tokamak.web import AsgiRouter, Request, Response, Route, Tokamak
 
 
 TEST_ROUTES = [
@@ -49,20 +49,17 @@ TEST_ROUTES = [
 ]
 
 
-async def handler(context, scope, receive, send, **kwargs):
-    headers: Iterable[Tuple[bytes, bytes]] = scope.get("headers", [])
-    qparams: Optional[bytes] = scope.get("query_string")
-    http_version: Optional[str] = scope.get("http_version")
-    method: Optional[str] = scope.get("method")
-    print(context, scope, headers, qparams, http_version, method)
-    print(kwargs)
-    message = await receive()
+async def handler(request: Request):
+    headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
+    qparams: Optional[bytes] = request.scope.get("query_string")
+    http_version: Optional[str] = request.scope.get("http_version")
+    method: Optional[str] = request.scope.get("method")
+    print(request.context, request.scope, headers, qparams, http_version, method)
+    
+    message = await request.receive()
     body = message.get("body") or b"{}"
-    payload = {"received": json.loads(body)}
-    await send({"type": "http.response.start", "status": 200})
-    await send(
-        {"type": "http.response.body", "body": json.dumps(payload).encode("utf-8")}
-    )
+    payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
+    await request.respond_with(Response(body=payload))
 
 
 def make_router():
