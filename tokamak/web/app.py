@@ -1,23 +1,27 @@
+from functools import wraps
 import logging
 from typing import Iterable, Optional, Tuple
 
+import trio
+
+from tokamak.web import methods
 from tokamak.web.request import Request
-from tokamak.web.router import AsgiRouter
+from tokamak.web import router
 
 
 logger = logging.getLogger("tokamak")
 
 
-try:
-    import trio
-except ImportError:
-    trio = None
-
-
 class Tokamak:
+    """
+    When using the Tokamak App instance, you should define handlers
+    that take a `tokamak.web.request.Request` instance, which uses
+    in-memory-channels to send back a Response and to schedule background
+    work.
+    """
     def __init__(
         self, 
-        router: Optional[AsgiRouter] = None, 
+        router: Optional[router.AsgiRouter] = None, 
         background_task_limit: int = 10
     ):
         self.router = router
@@ -47,7 +51,7 @@ class Tokamak:
 
         request = Request(context, scope, receive, resp_send_chan, bg_send_chan)
 
-        await route(request)
+        await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
         
         async with resp_recv_chan:
             async for response in resp_recv_chan:

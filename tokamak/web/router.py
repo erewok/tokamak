@@ -1,17 +1,19 @@
 from typing import Callable, Iterable, Optional
+
 from tokamak.radix_tree import tree
-from tokamak.web.request import Request
-from tokamak.web.response import MethodNotAllowedResponse, UnknownResourceResponse
 from tokamak.web import methods
 
 
+class RouterError(ValueError):
+    pass
 
-async def unknown(request, **kwargs):
-    await request.respond_with(UnknownResourceResponse)
+
+class UnknownEndpoint(RouterError):
+    pass
 
 
-async def method_not_allowed(request, **kwargs):
-    await request.respond_with(MethodNotAllowedResponse)
+class MethodNotAllowed(RouterError):
+    pass
 
 
 class Route:
@@ -25,15 +27,15 @@ class Route:
             raise ValueError("Missing `handler` function for path: {}".format(path))
         self.handler = handler
         self.path = path
-        self.methods = set((m.upper() for m in methods)) if methods else {"GET"}
+        self.methods = set((m.upper() for m in methods)) if methods else {methods.Method.GET.value}
 
     def can_handle(self, method: str):
         return method in self.methods
 
-    async def __call__(self, request: Request):
-        if self.can_handle(request.scope.get(methods.SCOPE_METHOD_KEY)):
-            return await self.handler(request)
-        return await method_not_allowed(request)
+    async def __call__(self, *args, method=methods.Method.GET.value, **kwargs):
+        if not self.can_handle(method):
+            raise MethodNotAllowed(f"{method} not allowed for {self.path}")
+        return await self.handler(*args, **kwargs)
 
 
 class AsgiRouter:
@@ -56,5 +58,5 @@ class AsgiRouter:
     def get_route(self, path):
         route, context = self.tree.get_handler(path)
         if not route:
-            route = unknown
+            raise UnknownEndpoint(f"Unknown path: {path}")
         return route, context

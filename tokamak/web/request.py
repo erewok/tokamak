@@ -1,3 +1,4 @@
+from tokamak.web.response import Response
 
 
 class Request:
@@ -9,6 +10,6 @@ class Request:
         self.background = background_chan
 
 
-    async def respond_with(self, response):
+    async def respond_with(self, response: Response):
         async with self.responder:
             await self.responder.send(response)
