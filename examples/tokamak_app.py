@@ -26,8 +26,7 @@ async def index(request: Request):
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     await request.respond_with(Response(body=payload))
-    async with request.background:
-        await request.background.send(bg_task)
+    await request.register_background(bg_task)
 
 
 async def context_matcher(request: Request):
@@ -41,8 +40,7 @@ async def context_matcher(request: Request):
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     await request.respond_with(Response(body=payload))
-    async with request.background:
-        await request.background.send(bg_task)
+    await request.register_background(bg_task)
 
 
 ROUTES = [
