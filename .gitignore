@@ -9,6 +9,7 @@ dist/
 build/
 htmlcov/
 .vscode/
+.notes
 *~
 # Ignore files cached by Hypothesis...
 .hypothesis/*

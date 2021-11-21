@@ -1,6 +1,8 @@
 import enum
 from typing import Optional
 
+SCOPE_METHOD_KEY = "method"
+
 
 @enum.unique
 class Method(enum.Enum):

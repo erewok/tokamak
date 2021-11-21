@@ -16,4 +16,4 @@ pytest-mypy==0.7.0
 twine==3.2.0
 typed-ast==1.4.1
 typing-extensions==3.7.4.3
-
+# async-generator-1.10 outcome-1.1.0 sniffio-1.2.0 trio-0.17.0

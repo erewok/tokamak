@@ -29,12 +29,14 @@ class DynamicParseNode:
     __slots__ = ["raw", "name", "regex", "_pattern"]
 
     def __init__(self, raw: str, name: str, regex: typing.Optional[str] = None):
-        if any((
-            len(raw) == 0,
-            len(name) == 0,
-            not isinstance(raw, str),
-            not isinstance(name, str),
-        )):
+        if any(
+            (
+                len(raw) == 0,
+                len(name) == 0,
+                not isinstance(raw, str),
+                not isinstance(name, str),
+            )
+        ):
             raise ValueError("Must pass non-empty strings for `raw` and `name`")
         self.raw = raw
         self.name = name
@@ -109,7 +111,8 @@ def parse_dynamic(path: str) -> typing.Iterator[typing.Union[str, "DynamicParseN
       - It is possible to include nested braces as part of a regex, but they must be matched:
         - This is fine: `{name:[a-zA-Z]{10}}`
         - This (a valid regex) will raise an exception: `{code:[}{}]}`
-      - We may later construct a named pattern out of this, so any parenthesis in the pattern will likely break.
+      - We may later construct a named pattern out of this,
+        so any parenthesis in the pattern will likely break.
 
     Returns a generator that yields in turn, static strings and DynamicParseNodes:
 
