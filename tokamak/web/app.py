@@ -1,4 +1,12 @@
+import logging
 from typing import Iterable, Optional, Tuple
+
+from tokamak.web.request import Request
+from tokamak.web.router import AsgiRouter
+
+
+logger = logging.getLogger("tokamak")
+
 
 try:
     import trio
@@ -7,9 +15,12 @@ except ImportError:
 
 
 class Tokamak:
-    def __init__(self, router=None, routes=None, background_task_limit=10):
+    def __init__(
+        self, 
+        router: Optional[AsgiRouter] = None, 
+        background_task_limit: int = 10
+    ):
         self.router = router
-        self.routes = routes
         # The channel limit, not total limit; will apply back-pressure
         self.background_task_limit = background_task_limit
 
@@ -17,10 +28,10 @@ class Tokamak:
         while True:
             message = await receive()
             if message["type"] == "lifespan.startup":
-                print("Starting tokamak")
+                logger.warn("Starting tokamak")
                 await send({"type": "lifespan.startup.complete"})
             elif message["type"] == "lifespan.shutdown":
-                print("Shutting down tokamak")
+                logger.warn("Shutting down tokamak")
                 await send({"type": "lifespan.shutdown.complete"})
                 return
 
@@ -31,9 +42,34 @@ class Tokamak:
         bg_send_chan, bg_recv_chan = trio.open_memory_channel(
             self.background_task_limit
         )
+        # http allows one response: what about streaming?
         resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
-        return await route(context, scope, receive, send)
+        request = Request(context, scope, receive, resp_send_chan, bg_send_chan)
+
+        await route(request)
+        
+        async with resp_recv_chan:
+            async for response in resp_recv_chan:
+                await send(
+                    {
+                        "type": "http.response.start",
+                        "status": response.status_code,
+                        "headers": response.raw_headers,
+                    }
+                )
+                if response.streaming:
+                    async for chunk in response.streaming_body:
+                        await send({"type": "http.response.body", "body": chunk, "more_body": True})
+                    await send({"type": "http.response.body", "body": b"", "more_body": False})
+                else:
+                    await send({"type": "http.response.body", "body": response.body})
+
+        async with bg_recv_chan:
+            async for background_task in bg_recv_chan:
+                await background_task()
+
+        return None
 
     async def ws(self, scope, receive, send):
         path: str = scope.get("path", "")

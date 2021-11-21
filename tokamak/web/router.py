@@ -1,21 +1,17 @@
 from typing import Callable, Iterable, Optional
 from tokamak.radix_tree import tree
+from tokamak.web.request import Request
+from tokamak.web.response import MethodNotAllowedResponse, UnknownResourceResponse
 from tokamak.web import methods
 
 
-class Response:
-    def __init__(self, body: bytes, status_code=200):
-        self.body = body
-        self.status_code = status_code
 
-    async def __call__(self, context, scope, receive, send, *args, **kwargs):
-        await send({"type": "http.response.start", "status": self.status_code})
-        await send({"type": "http.response.body", "body": self.body})
-        return self.body
+async def unknown(request, **kwargs):
+    await request.respond_with(UnknownResourceResponse)
 
 
-UnknownResourceResponse = Response(b"Unknown Resource", status_code=404)
-MethodNotAllowedResponse = Response(b"Method not allowed", status_code=405)
+async def method_not_allowed(request, **kwargs):
+    await request.respond_with(MethodNotAllowedResponse)
 
 
 class Route:
@@ -34,10 +30,10 @@ class Route:
     def can_handle(self, method: str):
         return method in self.methods
 
-    async def __call__(self, context, scope, receive, send):
-        if self.can_handle(scope.get(methods.SCOPE_METHOD_KEY)):
-            return await self.handler(context, scope, receive, send)
-        return await MethodNotAllowedResponse(context, scope, receive, send)
+    async def __call__(self, request: Request):
+        if self.can_handle(request.scope.get(methods.SCOPE_METHOD_KEY)):
+            return await self.handler(request)
+        return await method_not_allowed(request)
 
 
 class AsgiRouter:
@@ -60,5 +56,5 @@ class AsgiRouter:
     def get_route(self, path):
         route, context = self.tree.get_handler(path)
         if not route:
-            route = UnknownResourceResponse
+            route = unknown
         return route, context

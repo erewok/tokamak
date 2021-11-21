@@ -1,0 +1,14 @@
+
+
+class Request:
+    def __init__(self, context, scope, receive, response_chan, background_chan):
+        self.scope = scope
+        self.receive = receive
+        self.context = context
+        self.responder = response_chan
+        self.background = background_chan
+
+
+    async def respond_with(self, response):
+        async with self.responder:
+            await self.responder.send(response)

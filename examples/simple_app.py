@@ -49,12 +49,13 @@ TEST_ROUTES = [
 ]
 
 
-async def handler(context, scope, receive, send):
+async def handler(context, scope, receive, send, **kwargs):
     headers: Iterable[Tuple[bytes, bytes]] = scope.get("headers", [])
     qparams: Optional[bytes] = scope.get("query_string")
     http_version: Optional[str] = scope.get("http_version")
     method: Optional[str] = scope.get("method")
     print(context, scope, headers, qparams, http_version, method)
+    print(kwargs)
     message = await receive()
     body = message.get("body") or b"{}"
     payload = {"received": json.loads(body)}
