@@ -1,7 +1,7 @@
 from typing import Callable, Iterable, Optional
 
 from tokamak.radix_tree import tree
-from tokamak.web import methods as tokmethods
+from tokamak import methods as tokmethods
 
 
 class RouterError(ValueError):
@@ -21,7 +21,7 @@ class Route:
     A Route for a Tokamak Application represents:
       - a path,
       - a request method, and
-      - a handler dedicated to requests that match that path and method
+      - a handler dedicated to requests that match that path and method.
     """
 
     def __init__(
@@ -74,6 +74,11 @@ class AsgiRouter:
             Route("/files/{dir}/{filepath:*}", handler=some_handler, methods=["POST"]),
 
         ])
+
+    A dynamic route takes a name for the captured variable and a regex matcher,
+    like so: `"/regex/{name:[a-zA-Z]+}/test"`
+
+    The values matched in paths are always returned in the `context` as strings.
     """
 
     def __init__(

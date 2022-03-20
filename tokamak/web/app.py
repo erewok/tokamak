@@ -1,42 +1,92 @@
 import logging
-from functools import wraps
-from typing import Iterable, Optional, Tuple
+import traceback
+from typing import Awaitable, Callable, Iterable, Optional, Tuple
 
-import trio
-
-from tokamak.web import methods, router
+from tokamak import methods
+from tokamak import router
 from tokamak.web.request import Request
 
 logger = logging.getLogger("tokamak")
+
+try:
+    import trio
+except ImportError:
+    logger.error(
+        (
+            "To use Tokamak's web properties, "
+            "the library must be installed with option [web]"
+        )
+    )
+    raise
+
+
+async def lifespan_identity(app: "Tokamak", message_type: str = "") -> "Tokamak":
+    """A default implementation of lifespan: the identity function"""
+    return app
 
 
 class Tokamak:
     """
     When using the Tokamak App instance, you should define handlers
-    that take a `tokamak.web.request.Request` instance, which uses
-    in-memory-channels to send back a Response and to schedule background
-    work.
+    that take a `tokamak.web.request.Request` instance.
+    The `tokamak.web.request.Request` uses in-memory-channels to:
+      - send back a Response, and
+      - to schedule background work.
+
+    **Parameters:**
+
+    * **router** - a `tokamak.router.AsgiRouter` instance.
+    * **lifespan** - an async function with signature:
+    `async def lifespan(tok: Tokamak, message_type: str)`.
+    * **background_task_limit** - Limit for background tasks allowed for
+    _each_ handler before back-pressure is applied.
     """
+
+    LIFESPAN_STARTUP = "lifespan.startup"
+    LIFESPAN_SHUTDOWN = "lifespan.shutdown"
 
     def __init__(
         self,
         router: Optional[router.AsgiRouter] = None,
         background_task_limit: int = 10,
+        lifespan: Callable[["Tokamak", str], Awaitable["Tokamak"]] = lifespan_identity,
     ):
         self.router = router
         # The channel limit, not total limit; will apply back-pressure
         self.background_task_limit = background_task_limit
+        # Lifespan callback shoud take this application instance and return it
+        self.lifespan_func = lifespan
 
     async def lifespan(self, scope, receive, send):
         while True:
             message = await receive()
-            if message["type"] == "lifespan.startup":
+            if message["type"] == self.LIFESPAN_STARTUP:
                 logger.warn("========·°·°~> Starting tokamak °°···°°🚀···°° ")
-                await send({"type": "lifespan.startup.complete"})
-            elif message["type"] == "lifespan.shutdown":
+                try:
+                    await self.lifespan_func(self, message_type=message["type"])
+                except Exception:
+                    await send(
+                        {
+                            "type": "lifespan.startup.failed",
+                            "message": traceback.format_exc(),
+                        }
+                    )
+                else:
+                    await send({"type": "lifespan.startup.complete"})
+            elif message["type"] == self.LIFESPAN_SHUTDOWN:
                 logger.warn("~°°···°°°~ Shutting down tokamak ~°°···🚉···°°°~ ")
-                await send({"type": "lifespan.shutdown.complete"})
-                return
+                try:
+                    await self.lifespan_func(self, message_type=message["type"])
+                except Exception:
+                    await send(
+                        {
+                            "type": "lifespan.shutdown.failed",
+                            "message": traceback.format_exc(),
+                        }
+                    )
+                else:
+                    await send({"type": "lifespan.shutdown.complete"})
+                return None
 
     async def http(self, scope, receive, send):
         path: str = scope.get("path", "")
@@ -48,7 +98,7 @@ class Tokamak:
         # http allows one response: what about streaming?
         resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
-        request = Request(context, scope, receive, resp_send_chan, bg_send_chan)
+        request = Request(context, scope, receive, path, resp_send_chan, bg_send_chan)
 
         await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
 
@@ -95,6 +145,7 @@ class Tokamak:
         resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
     async def __call__(self, scope, receive, send):
+        scope["app"] = self
         if scope["type"] == "lifespan":
             return await self.lifespan(scope, receive, send)
         elif scope["type"] == "http":

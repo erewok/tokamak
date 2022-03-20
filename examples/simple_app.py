@@ -5,7 +5,8 @@ from hypercorn.config import Config
 from hypercorn.trio import serve
 import trio
 
-from tokamak.web import AsgiRouter, Request, Response, Route, Tokamak
+from tokamak import AsgiRouter, Route
+from tokamak.web import Request, Response, Tokamak
 
 
 TEST_ROUTES = [
