@@ -48,7 +48,7 @@ class Tokamak:
     def __init__(
         self,
         router: Optional[router.AsgiRouter] = None,
-        background_task_limit: int = 10,
+        background_task_limit: int = 1000,
         lifespan: Callable[["Tokamak", str], Awaitable["Tokamak"]] = lifespan_identity,
     ):
         self.router = router
@@ -56,6 +56,9 @@ class Tokamak:
         self.background_task_limit = background_task_limit
         # Lifespan callback shoud take this application instance and return it
         self.lifespan_func = lifespan
+        self.bg_send_chan, self.bg_recv_chan = trio.open_memory_channel(
+            self.background_task_limit
+        )
 
     async def lifespan(self, scope, receive, send):
         while True:
@@ -92,13 +95,12 @@ class Tokamak:
         path: str = scope.get("path", "")
         route, context = self.router.get_route(path)
 
-        bg_send_chan, bg_recv_chan = trio.open_memory_channel(
-            self.background_task_limit
-        )
         # http allows one response: what about streaming?
         resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
-        request = Request(context, scope, receive, path, resp_send_chan, bg_send_chan)
+        request = Request(
+            context, scope, receive, path, resp_send_chan, self.bg_send_chan
+        )
 
         await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
 
@@ -126,8 +128,8 @@ class Tokamak:
                 else:
                     await send({"type": "http.response.body", "body": response.body})
 
-        async with bg_recv_chan:
-            async for background_task in bg_recv_chan:
+        async with self.bg_recv_chan:
+            async for background_task in self.bg_recv_chan:
                 await background_task()
 
         return None
