@@ -55,7 +55,7 @@ async def handler(request: Request):
     http_version: Optional[str] = request.scope.get("http_version")
     method: Optional[str] = request.scope.get("method")
     print(request.context, request.scope, headers, qparams, http_version, method)
-    
+
     message = await request.receive()
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")

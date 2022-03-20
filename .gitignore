@@ -1,3 +1,4 @@
+.envrc
 venv/
 *.pyc
 __pycache__/
@@ -11,6 +12,7 @@ htmlcov/
 .vscode/
 .notes
 *~
+.python-version
 # Ignore files cached by Hypothesis...
 .hypothesis/*
 # except for the examples directory
