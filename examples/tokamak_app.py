@@ -1,3 +1,4 @@
+from functools import partial
 import json
 from typing import Iterable, Optional, Tuple
 
@@ -40,7 +41,7 @@ async def context_matcher(request: Request):
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     await request.respond_with(Response(body=payload))
-    await request.register_background(bg_task)
+    await request.register_background(partial(bg_task, arg1="some kwarg"))
 
 
 ROUTES = [
