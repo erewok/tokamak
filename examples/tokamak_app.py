@@ -35,7 +35,7 @@ async def context_matcher(request: Request):
     http_version: Optional[str] = request.scope.get("http_version")
     method: Optional[str] = request.scope.get("method")
     print(request.context, request.scope, headers, qparams, http_version, method)
-    
+
     message = await request.receive()
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
@@ -58,9 +58,9 @@ ROUTES = [
             (
                 "/optional/{name:[a-zA-Z]+}/{word}/plus/"
                 "{uid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}"
-            )
+            ),
         ]
-    ]
+    ],
 ]
 
 
