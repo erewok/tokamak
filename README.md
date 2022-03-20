@@ -61,7 +61,7 @@ Package operations: 8 installs, 0 updates, 0 removals
   • Installing hypercorn (0.13.2)
 
 Installing the current project: tokamak (0.2.1)
-❯ pyenv exec poetry run python examples/tokamak_app.py
+❯ poetry run python examples/tokamak_app.py
 ========·°·°~> Starting tokamak °°···°°🚀···°°
 [2022-03-20 11:05:01 -0700] [63023] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
 ```
@@ -79,7 +79,7 @@ In a separate terminal, you can make various requests, such as the following:
 Back in the first terminal, where you launched the example `tokamak` application, you should see the following:
 
 ```sh
-❯ pyenv exec poetry run python examples/tokamak_app.py
+❯ poetry run python examples/tokamak_app.py
 ========·°·°~> Starting tokamak °°···°°🚀···°°
 [2022-03-20 11:05:01 -0700] [63023] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
 {} {'type': 'http', 'http_version': '1.1', 'asgi': {'spec_version': '2.1', 'version': '3.0'}, 'method': 'GET', 'scheme': 'http', 'path': '/', 'raw_path': b'/', 'query_string': b'', 'root_path': '', 'headers': <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*')])>, 'client': ('127.0.0.1', 55379), 'server': ('127.0.0.1', 8000), 'extensions': {}} <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*')])> b'' 1.1 GET
@@ -88,7 +88,7 @@ Sleeping 1s for total seconds: 1
 Sleeping 1s for total seconds: 2
 Sleeping 1s for total seconds: 3
 Sleeping 1s for total seconds: 4
-{} {'type': 'http', 'http_version': '1.1', 'asgi': {'spec_version': '2.1', 'version': '3.0'}, 'method': 'GET', 'scheme': 'http', 'path': '/', 'raw_path': b'/', 'query_string': b'', 'root_path': '', 'headers': <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*')])>, 'client': ('127.0.0.1', 55380), 'server': ('127.0.0.1', 8000), 'extensions': {}} <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*')])> b'' 1.1 GET
+{'user': 'erik'} {'type': 'http', 'http_version': '1.1', 'asgi': {'spec_version': '2.1', 'version': '3.0'}, 'method': 'POST', 'scheme': 'http', 'path': '/info/erik', 'raw_path': b'/info/erik', 'query_string': b'', 'root_path': '', 'headers': <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*'), (b'content-length', b'26'), (b'content-type', b'application/x-www-form-urlencoded')])>, 'client': ('127.0.0.1', 55386), 'server': ('127.0.0.1', 8000), 'extensions': {}} <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*'), (b'content-length', b'26'), (b'content-type', b'application/x-www-form-urlencoded')])> b'' 1.1 POST
 Sleeping 1s for total seconds: 0
 Sleeping 1s for total seconds: 5
 Sleeping 1s for total seconds: 1
