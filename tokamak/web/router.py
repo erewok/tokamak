@@ -17,6 +17,13 @@ class MethodNotAllowed(RouterError):
 
 
 class Route:
+    """
+    A Route for a Tokamak Application represents:
+      - a path,
+      - a request method, and
+      - a handler dedicated to requests that match that path and method
+    """
+
     def __init__(
         self,
         path: str = "",
@@ -43,6 +50,32 @@ class Route:
 
 
 class AsgiRouter:
+    """
+    A AsgiRouter for a Tokamak Application is one or more `Route`s
+    with an optional configuration for matching trailing slashes or not.
+
+    Example:
+        async def some_handler(request: Request):
+            headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
+            qparams: Optional[bytes] = request.scope.get("query_string")
+            http_version: Optional[str] = request.scope.get("http_version")
+            method: Optional[str] = request.scope.get("method")
+            print(request.context, request.scope, headers, qparams, http_version, method)
+
+            message = await request.receive()
+            body = message.get("body") or b"{}"
+            payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
+            await request.respond_with(Response(body=payload))
+            await request.register_background(partial(bg_task, arg1="some kwarg"))
+
+
+        AsgiRouter(routes=[
+            Route("/", handler=some_handler, methods=["GET"]),
+            Route("/files/{dir}/{filepath:*}", handler=some_handler, methods=["POST"]),
+
+        ])
+    """
+
     def __init__(
         self,
         routes: Optional[Iterable[Route]] = None,
