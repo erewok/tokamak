@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tokamak"
-version = "0.2.1"
+version = "0.3.0"
 description = "HTTP Router based on radix trees"
 authors = ["Erik Aker <eraker@gmail.com>"]
 license = "MPL-2.0"
