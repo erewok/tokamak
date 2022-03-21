@@ -5,7 +5,8 @@ from hypercorn.config import Config
 from hypercorn.trio import serve
 import trio
 
-from tokamak.web import AsgiRouter, Request, Response, Route, Tokamak
+from tokamak import AsgiRouter, Route
+from tokamak.web import Request, Response, Tokamak
 
 
 TEST_ROUTES = [
@@ -62,9 +63,14 @@ async def handler(request: Request):
     await request.respond_with(Response(body=payload))
 
 
+async def basic_handler(request: Request):
+    message = await request.receive()
+    await request.respond_with(Response(body=b"ok"))
+
+
 def make_router():
     return AsgiRouter(
-        routes=[Route(path=route, handler=handler) for route in TEST_ROUTES]
+        routes=[Route(path=route, handler=basic_handler) for route in TEST_ROUTES]
     )
 
 

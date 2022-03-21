@@ -3,7 +3,7 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies
 
-from tokamak.web import methods
+from tokamak import methods
 
 
 @given(strategies.sampled_from(methods.Method))
@@ -13,12 +13,7 @@ def test_method_prop(meth):
 
 
 @pytest.mark.parametrize(
-    "val,result",
-    (
-        ("CoNnECT", methods.Method.CONNECT),
-        ("", None),
-        (None, None),
-    ),
+    "val,result", (("CoNnECT", methods.Method.CONNECT), ("", None), (None, None),),
 )
 def test_method_read(val, result):
     assert methods.Method.read(val) is result

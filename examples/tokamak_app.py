@@ -1,19 +1,45 @@
 from functools import partial
 import json
+import logging
 from typing import Iterable, Optional, Tuple
 
 from hypercorn.config import Config
 from hypercorn.trio import serve
 import trio
 
-from tokamak.web import AsgiRouter, Request, Response, Route, Tokamak
+from tokamak import AsgiRouter, Route
+from tokamak.web import Request, Response, Tokamak
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+sh = logging.StreamHandler()
+logger.addHandler(sh)
+# Fake database
+DB = {}
+
+
+async def error_lifespan(app: Tokamak, message_type: str = "") -> Tokamak:
+    if message_type == Tokamak.LIFESPAN_STARTUP:
+        raise ValueError("Startup blew up")
+    elif message_type == Tokamak.LIFESPAN_SHUTDOWN:
+        raise ValueError("Startup blew up")
+    return app
+
+
+async def lifespan(app: Tokamak, message_type: str = "") -> Tokamak:
+    if message_type == Tokamak.LIFESPAN_STARTUP:
+        app.db = DB
+    elif message_type == Tokamak.LIFESPAN_SHUTDOWN:
+        app.db = None
+    return app
 
 
 async def bg_task(arg1=None):
     for n in range(10):
-        print(f"Sleeping 1s for total seconds: {n}")
+        logger.info(f"Sleeping 1s for total iterations: {n}")
         await trio.sleep(1)
-    print("Background DONE SLEEPING, with arg1", arg1)
+    logger.info(f"Background DONE SLEEPING, with arg1 '{arg1}'")
 
 
 async def index(request: Request):
@@ -21,7 +47,10 @@ async def index(request: Request):
     qparams: Optional[bytes] = request.scope.get("query_string")
     http_version: Optional[str] = request.scope.get("http_version")
     method: Optional[str] = request.scope.get("method")
-    print(request.context, request.scope, headers, qparams, http_version, method)
+
+    logger.info(
+        f"{request.context=}, {request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
+    )
 
     message = await request.receive()
     body = message.get("body") or b"{}"
@@ -35,11 +64,15 @@ async def context_matcher(request: Request):
     qparams: Optional[bytes] = request.scope.get("query_string")
     http_version: Optional[str] = request.scope.get("http_version")
     method: Optional[str] = request.scope.get("method")
-    print(request.context, request.scope, headers, qparams, http_version, method)
 
+    # Dump out contents of request
+    logger.info(
+        f"{request.app.db=}, {request.context=}, {request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
+    )
     message = await request.receive()
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
+    request.app.db[request.path] = payload
     await request.respond_with(Response(body=payload))
     await request.register_background(partial(bg_task, arg1="some kwarg"))
 
@@ -68,4 +101,5 @@ ROUTES = [
 if __name__ == "__main__":
     config = Config()
     config.bind = ["localhost:8000"]
-    trio.run(serve, Tokamak(router=AsgiRouter(routes=ROUTES)), config)
+    app = Tokamak(router=AsgiRouter(routes=ROUTES), lifespan=lifespan)
+    trio.run(serve, app, config)
