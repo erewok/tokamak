@@ -6,25 +6,13 @@ Tokamak is a router based on Radix trees intended for ASGI Python applications.
 
 ## Project Goals (Why Did You Build This?)
 
-This project was created to fill a gap in the Python ecosystem. In various other language communities, including Go, Javascript, and others, HTTP routers based on radix trees have been provided by open-source projects. In Python, no such library exists and most open-source Python web frameworks utilize lists to store and look up HTTP routes.
+This project was created to fill a gap in the Python ecosystem. There is a variety of HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, no such library exists and most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
 
-Thus, this project exists to provide a radix-tree-based router for Python web frameworks (or any custom ASGI or WSGI implementation).
+The primary goal for this project is to provide a radix-tree-based router for Python web frameworks (or any custom ASGI or WSGI implementation).
 
-While early, this project is an attempt to achieve the following goals:
-
-- Build an HTTP router based on radix trees.
-- Make sure it shows good performance while looking-up HTTP paths (especially or in particular where there are _many, possible routes_ to select from).
-- Provide implementations of routers for the ASGI spec.
+**This library is currently considered to be _experimental_.**
 
 As a secondary goal, a minimal web framework may in the future also be provided for building web applications in order to explore this space. However, more fully featured frameworks should be considered before this one. Producing a feature-complete web framework is _not_ a primary goal of this project.
-
-## Is This Project Production Ready?
-
-This is an experimental prototype, an exploration of radix routers in Python. It was first created in order to provide routing for a business project that grew to have many HTTP paths to choose from.
-
-If you decide to test and then use this project in your projects, please let us know.
-
-Caveat emptor!
 
 ## Installation
 
@@ -43,11 +31,9 @@ $ pip install "tokamak[web]"
 
 ## Usage
 
-This library provides radix tree implementation and a basic router implementation for ASGI applications.
+This library provides a radix tree implementation and a basic `AsgiRouter` router implementation for low-level ASGI applications. You can use the `AsgiRouter` class as follows.
 
-You can build an `AsgiRouter` like this.
-
-First, with some imports and some fallback handlers:
+First, we start with some with some imports and some fallback handlers:
 
 ```python
 from hypercorn.config import Config
@@ -91,7 +77,7 @@ async def unknown_handler(scope, receive, send):
     )
 ```
 
-Next we'll build two different application endpoint handlers:
+Next we'll build two different application endpoint handlers. These do roughly the same thing, so this is purely for demonstration purposes:
 
 ```python
 async def index(path_context, scope, receive, send):
@@ -119,6 +105,7 @@ async def other_handler(path_context, scope, receive, send):
 Finally, we can build an `AsgiRouter` and a working ASGI app, like this:
 
 ```python
+# `AsgiRouter` and `Route` class provided by this library
 ROUTER = AsgiRouter(
     routes=[
         Route("/", handler=index, methods=["GET"]),
@@ -130,7 +117,8 @@ ROUTER = AsgiRouter(
     ]
 )
 
-
+# This is a basic implementation of the ASGI spec
+# See: https://asgi.readthedocs.io/en/latest/specs/main.html
 async def asgi_app(scope, receive, send):
     path = scope.get("path", "")
     try:
@@ -164,7 +152,7 @@ async def app_with_lifespan(scope, receive, send):
         return await asgi_app(scope, receive, send)
 ```
 
-We'll add the following to run our script:
+Finally, to run our ASGI app, we'll add the following:
 
 ```python
 
@@ -174,7 +162,12 @@ if __name__ == "__main__":
     trio.run(partial(serve, app_with_lifespan, config))
 ```
 
-We can run it like this:
+This example relies on the following dependencies:
+
+- hypercorn
+- trio
+
+If we have these dependencies in our Python environment, we can this simple script:
 
 ```sh
 $ poetry run python examples/asgi_minimal.py
