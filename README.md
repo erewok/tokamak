@@ -6,25 +6,13 @@ Tokamak is a router based on Radix trees intended for ASGI Python applications.
 
 ## Project Goals (Why Did You Build This?)
 
-This project was created to fill a gap in the Python ecosystem. Whereas, in various other language communities, including Go, Javascript, and others, there are many HTTP routers based on radix trees available. In Python, however, no such library exists and most open-source Python web frameworks utilize lists to store and look up HTTP routes.
+This project was created to fill a gap in the Python ecosystem. There is a variety of HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, no such library exists and most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
 
-This project exists to provide a radix-tree-based router for Python web frameworks (or any custom ASGI or WSGI implementation).
+The primary goal for this project is to provide a radix-tree-based router for Python web frameworks (or any custom ASGI or WSGI implementation).
 
-This project is an experimental attempt to achieve the following goals:
-
-- Build an HTTP router based on radix trees.
-- Make sure it shows good performance while looking-up HTTP paths (especially or in particular where there are _many, possible routes_ to select from).
-- Provide implementations of routers for the ASGI spec.
+**This library is currently considered to be _experimental_.**
 
 As a secondary goal, a minimal web framework may in the future also be provided for building web applications in order to explore this space. However, more fully featured frameworks should be considered before this one. Producing a feature-complete web framework is _not_ a primary goal of this project.
-
-## Is This Project Production Ready?
-
-This is an experimental prototype, an exploration of radix-tree routers in Python. It was first created in order to provide routing for a business project that grew to have many HTTP paths to choose from.
-
-If you decide to test and then use this project in your projects, please let us know.
-
-Caveat emptor!
 
 ## Installation
 
