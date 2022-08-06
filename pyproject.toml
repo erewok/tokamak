@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "tokamak"
-version = "0.3.1"
+version = "0.4.0"
 description = "HTTP Router based on radix trees"
 readme = "./README.md"
 authors = ["Erik Aker <eraker@gmail.com>"]
@@ -9,11 +9,12 @@ license = "MPL-2.0"
 [tool.poetry.dependencies]
 python = "^3.9"
 hypercorn = { version = "^0.13.2", optional = true }
+starlette = { version = "^0.20.4", optional = true }
 trio = { version = "^0.20.0", optional = true }
 
 [tool.poetry.dev-dependencies]
-black = "^22.1.0"
-hypothesis = "^6.39.4"
+black = "^22.6.0"
+hypothesis = "^6.54.0"
 isort = "^5.10.1"
 mypy = "^0.941"
 pytest = "^7.1.1"
@@ -28,5 +29,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
 web = ["trio"]
-examples = ["hypercorn"]
+examples = ["hypercorn", "starlette"]
 full = ["hypercorn", "trio"]

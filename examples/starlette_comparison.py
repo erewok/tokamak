@@ -2,16 +2,14 @@ import json
 import logging
 from typing import Iterable, Optional, Tuple
 
+import trio
 from hypercorn.config import Config
 from hypercorn.trio import serve
-import trio
-
 from starlette.applications import Starlette
 from starlette.background import BackgroundTask
 from starlette.requests import Request
 from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Route
-
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)

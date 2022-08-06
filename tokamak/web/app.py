@@ -2,8 +2,7 @@ import logging
 import traceback
 from typing import Awaitable, Callable, Iterable, Optional, Tuple
 
-from tokamak import methods
-from tokamak import router
+from tokamak import methods, router
 from tokamak.web.request import Request
 
 logger = logging.getLogger("tokamak")

@@ -1,9 +1,9 @@
-from functools import partial
 import json
+from functools import partial
 
+import trio
 from hypercorn.config import Config
 from hypercorn.trio import serve
-import trio
 
 from tokamak import AsgiRouter, Route
 from tokamak.router import MethodNotAllowed, UnknownEndpoint
@@ -72,7 +72,9 @@ ROUTER = AsgiRouter(
         # Routes will match on regexes and bind to variables
         # given on the left side of the colon
         Route(
-            "/other_handler/{name:[a-z1-9]+}", handler=other_handler, methods=["POST"],
+            "/other_handler/{name:[a-z1-9]+}",
+            handler=other_handler,
+            methods=["POST"],
         ),
     ]
 )
