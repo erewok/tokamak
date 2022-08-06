@@ -19,5 +19,4 @@ class Request:
             await self.responder.send(response)
 
     async def register_background(self, callable, args=None, kwargs=None):
-        async with self.background:
-            await self.background.send(callable)
+        await self.background.send(callable)

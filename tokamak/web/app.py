@@ -52,9 +52,9 @@ class Tokamak:
         lifespan: Callable[["Tokamak", str], Awaitable["Tokamak"]] = lifespan_identity,
     ):
         self.router = router
-        # The channel limit, not total limit; will apply back-pressure
+        # Total background task limit; will apply back-pressure
         self.background_task_limit = background_task_limit
-        # Lifespan callback shoud take this application instance and return it
+        # Lifespan callback shou;d take this application instance and return it
         self.lifespan_func = lifespan
         self.bg_send_chan, self.bg_recv_chan = trio.open_memory_channel(
             self.background_task_limit
@@ -102,33 +102,39 @@ class Tokamak:
             context, scope, receive, path, resp_send_chan, self.bg_send_chan
         )
 
-        await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
+        async with self.bg_recv_chan:
+            await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
 
-        async with resp_recv_chan:
-            async for response in resp_recv_chan:
-                await send(
-                    {
-                        "type": "http.response.start",
-                        "status": response.status_code,
-                        "headers": response.raw_headers,
-                    }
-                )
-                if response.streaming:
-                    async for chunk in response.streaming_body:
+            async with resp_recv_chan:
+                async for response in resp_recv_chan:
+                    await send(
+                        {
+                            "type": "http.response.start",
+                            "status": response.status_code,
+                            "headers": response.raw_headers,
+                        }
+                    )
+                    if response.streaming:
+                        async for chunk in response.streaming_body:
+                            await send(
+                                {
+                                    "type": "http.response.body",
+                                    "body": chunk,
+                                    "more_body": True,
+                                }
+                            )
                         await send(
                             {
                                 "type": "http.response.body",
-                                "body": chunk,
-                                "more_body": True,
+                                "body": b"",
+                                "more_body": False,
                             }
                         )
-                    await send(
-                        {"type": "http.response.body", "body": b"", "more_body": False}
-                    )
-                else:
-                    await send({"type": "http.response.body", "body": response.body})
+                    else:
+                        await send(
+                            {"type": "http.response.body", "body": response.body}
+                        )
 
-        async with self.bg_recv_chan:
             async for background_task in self.bg_recv_chan:
                 await background_task()
 
@@ -148,9 +154,10 @@ class Tokamak:
 
     async def __call__(self, scope, receive, send):
         scope["app"] = self
-        if scope["type"] == "lifespan":
-            return await self.lifespan(scope, receive, send)
-        elif scope["type"] == "http":
-            return await self.http(scope, receive, send)
-        elif scope["type"] == "websocket":
-            return await self.ws(scope, receive, send)
+        async with trio.open_nursery() as nursery:
+            if scope["type"] == "lifespan":
+                nursery.start_soon(self.lifespan, scope, receive, send)
+            elif scope["type"] == "http":
+                nursery.start_soon(self.http, scope, receive, send)
+            elif scope["type"] == "websocket":
+                nursery.start_soon(self.ws, scope, receive, send)

@@ -67,7 +67,10 @@ async def context_matcher(request: Request):
 
     # Dump out contents of request
     logger.info(
-        f"{request.app.db=}, {request.context=}, {request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
+        (
+            f"{request.app.db=}, {request.context=}, "
+            f"{request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
+        )
     )
     message = await request.receive()
     body = message.get("body") or b"{}"
@@ -80,7 +83,7 @@ async def context_matcher(request: Request):
 ROUTES = [
     Route("/", handler=index, methods=["GET"]),
     *[
-        Route(path, handler=context_matcher, methods=["POST"])
+        Route(path, handler=context_matcher, methods=["GET", "POST"])
         for path in [
             "/files/{dir}/{filepath:*}",
             "/info/{user}",
