@@ -1,7 +1,5 @@
 import pytest
-
-from hypothesis import given
-from hypothesis import strategies
+from hypothesis import given, strategies
 
 from tokamak import methods
 
@@ -13,7 +11,12 @@ def test_method_prop(meth):
 
 
 @pytest.mark.parametrize(
-    "val,result", (("CoNnECT", methods.Method.CONNECT), ("", None), (None, None),),
+    "val,result",
+    (
+        ("CoNnECT", methods.Method.CONNECT),
+        ("", None),
+        (None, None),
+    ),
 )
 def test_method_read(val, result):
     assert methods.Method.read(val) is result

@@ -1,7 +1,7 @@
 from typing import Callable, Iterable, Optional
 
-from tokamak.radix_tree import tree
 from tokamak import methods as tokmethods
+from tokamak.radix_tree import tree
 
 
 class RouterError(ValueError):

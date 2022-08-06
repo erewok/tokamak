@@ -3,8 +3,7 @@
 """
 import re
 
-from hypothesis import given
-from hypothesis import strategies
+from hypothesis import given, strategies
 
 from tokamak.radix_tree import node, tree, utils
 

@@ -1,13 +1,12 @@
 import json
 from typing import Iterable, Optional, Tuple
 
+import trio
 from hypercorn.config import Config
 from hypercorn.trio import serve
-import trio
 
 from tokamak import AsgiRouter, Route
 from tokamak.web import Request, Response, Tokamak
-
 
 TEST_ROUTES = [
     "/",
