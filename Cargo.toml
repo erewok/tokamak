@@ -1,0 +1,22 @@
+[package]
+name = "tokamak-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Erik Aker <eraker@gmail.com>"]
+publish = false
+
+[lib]
+name = "tokamak_rs"
+crate-type = ["cdylib"]
+
+[features]
+extension-module = ["pyo3/extension-module"]
+default = ["extension-module"]
+
+[dependencies]
+rand = "0.8.5"
+pyo3 = { version = "0.16.5", features = ["extension-module"] }
+
+[profile.release]
+lto = "thin"
+overflow-checks = true

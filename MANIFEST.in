@@ -1,3 +1,5 @@
 include LICENSE
 global-exclude __pycache__
 global-exclude *.py[co]
+include Cargo.toml
+recursive-include src *

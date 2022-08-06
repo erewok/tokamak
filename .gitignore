@@ -2,6 +2,7 @@
 venv/
 *.pyc
 __pycache__/
+target/
 .coverage
 .pytest_cache/
 .mypy_cache/
