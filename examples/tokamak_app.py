@@ -43,20 +43,7 @@ async def bg_task(arg1=None):
 
 
 async def index(request: Request):
-    headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
-    qparams: Optional[bytes] = request.scope.get("query_string")
-    http_version: Optional[str] = request.scope.get("http_version")
-    method: Optional[str] = request.scope.get("method")
-
-    logger.info(
-        f"{request.context=}, {request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
-    )
-
-    message = await request.receive()
-    body = message.get("body") or b"{}"
-    payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
-    await request.respond_with(Response(body=payload))
-    await request.register_background(bg_task)
+    await request.respond_with(Response(body=b"ok"))
 
 
 async def context_matcher(request: Request):
