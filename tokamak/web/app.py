@@ -54,7 +54,7 @@ class Tokamak:
         self.router = router
         # Total background task limit; will apply back-pressure
         self.background_task_limit = background_task_limit
-        # Lifespan callback shou;d take this application instance and return it
+        # Lifespan callback should take this application instance and return it
         self.lifespan_func = lifespan
         self.bg_send_chan, self.bg_recv_chan = trio.open_memory_channel(
             self.background_task_limit
@@ -95,17 +95,17 @@ class Tokamak:
         path: str = scope.get("path", "")
         route, context = self.router.get_route(path)
 
-        # http allows one response: what about streaming?
         resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
         request = Request(
             context, scope, receive, path, resp_send_chan, self.bg_send_chan
         )
 
-        async with self.bg_recv_chan:
-            await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
-
+        async with self.bg_send_chan, self.bg_recv_chan:
             async with resp_recv_chan:
+                # Run handler
+                await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
+                # Send response to client
                 async for response in resp_recv_chan:
                     await send(
                         {
@@ -134,7 +134,7 @@ class Tokamak:
                         await send(
                             {"type": "http.response.body", "body": response.body}
                         )
-
+            # Run background
             async for background_task in self.bg_recv_chan:
                 await background_task()
 

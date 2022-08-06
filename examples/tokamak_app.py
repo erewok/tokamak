@@ -36,7 +36,7 @@ async def lifespan(app: Tokamak, message_type: str = "") -> Tokamak:
 
 
 async def bg_task(arg1=None):
-    for n in range(10):
+    for n in range(5):
         logger.info(f"Sleeping 1s for total iterations: {n}")
         await trio.sleep(1)
     logger.info(f"Background DONE SLEEPING, with arg1 '{arg1}'")
