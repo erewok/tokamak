@@ -36,27 +36,14 @@ async def lifespan(app: Tokamak, message_type: str = "") -> Tokamak:
 
 
 async def bg_task(arg1=None):
-    for n in range(10):
+    for n in range(5):
         logger.info(f"Sleeping 1s for total iterations: {n}")
         await trio.sleep(1)
     logger.info(f"Background DONE SLEEPING, with arg1 '{arg1}'")
 
 
 async def index(request: Request):
-    headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
-    qparams: Optional[bytes] = request.scope.get("query_string")
-    http_version: Optional[str] = request.scope.get("http_version")
-    method: Optional[str] = request.scope.get("method")
-
-    logger.info(
-        f"{request.context=}, {request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
-    )
-
-    message = await request.receive()
-    body = message.get("body") or b"{}"
-    payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
-    await request.respond_with(Response(body=payload))
-    await request.register_background(bg_task)
+    await request.respond_with(Response(body=b"ok"))
 
 
 async def context_matcher(request: Request):
@@ -67,7 +54,10 @@ async def context_matcher(request: Request):
 
     # Dump out contents of request
     logger.info(
-        f"{request.app.db=}, {request.context=}, {request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
+        (
+            f"{request.app.db=}, {request.context=}, "
+            f"{request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
+        )
     )
     message = await request.receive()
     body = message.get("body") or b"{}"
@@ -80,7 +70,7 @@ async def context_matcher(request: Request):
 ROUTES = [
     Route("/", handler=index, methods=["GET"]),
     *[
-        Route(path, handler=context_matcher, methods=["POST"])
+        Route(path, handler=context_matcher, methods=["GET", "POST"])
         for path in [
             "/files/{dir}/{filepath:*}",
             "/info/{user}",
