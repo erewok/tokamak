@@ -14,10 +14,6 @@ class Request:
     def app(self):
         return self.scope.get("app")
 
-    async def respond_with(self, response: Response):
-        async with self.responder:
-            await self.responder.send(response)
-
     async def register_background(self, callable, args=None, kwargs=None):
         async with self.background:
             await self.background.send(callable)

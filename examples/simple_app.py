@@ -60,12 +60,10 @@ async def handler(request: Request):
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     return Response(body=payload)
-    # await request.respond_with()
 
 
 async def basic_handler(request: Request):
     message = await request.receive()
-    # await request.respond_with()
     return Response(body=b"ok")
 
 

@@ -96,13 +96,7 @@ class Tokamak:
 
         # resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
-        request = Request(
-            context,
-            scope,
-            receive,
-            path,  # resp_send_chan.clone(),
-            self.bg_send_chan.clone(),
-        )
+        request = Request(context, scope, receive, path, self.bg_send_chan.clone(),)
 
         async with self.bg_send_chan, self.bg_recv_chan:
             # Run handler
@@ -129,37 +123,8 @@ class Tokamak:
             else:
                 await send({"type": "http.response.body", "body": response.body})
 
-                # Send response to client
-                # async for response in resp_recv_chan:
-                #     await send(
-                #         {
-                #             "type": "http.response.start",
-                #             "status": response.status_code,
-                #             "headers": response.raw_headers,
-                #         }
-                #     )
-                #     if response.streaming:
-                #         async for chunk in response.streaming_body:
-                #             await send(
-                #                 {
-                #                     "type": "http.response.body",
-                #                     "body": chunk,
-                #                     "more_body": True,
-                #                 }
-                #             )
-                #         await send(
-                #             {
-                #                 "type": "http.response.body",
-                #                 "body": b"",
-                #                 "more_body": False,
-                #             }
-                #         )
-                #     else:
-                #         await send(
-                #             {"type": "http.response.body", "body": response.body}
-                #         )
             # Run background
-            async for background_task in self.bg_recv_chan.clone():
+            async for background_task in self.bg_recv_chan:
                 await background_task()
 
         return None
