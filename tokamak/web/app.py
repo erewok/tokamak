@@ -94,45 +94,35 @@ class Tokamak:
         path: str = scope.get("path", "")
         route, context = self.router.get_route(path)
 
-        resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
+        # resp_send_chan, resp_recv_chan = trio.open_memory_channel(1)
 
-        request = Request(
-            context, scope, receive, path, resp_send_chan, self.bg_send_chan
-        )
+        request = Request(context, scope, receive, path, self.bg_send_chan.clone(),)
 
         async with self.bg_send_chan, self.bg_recv_chan:
-            async with resp_recv_chan:
-                # Run handler
-                await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
-                # Send response to client
-                async for response in resp_recv_chan:
+            # Run handler
+            response = await route(request, method=scope.get(methods.SCOPE_METHOD_KEY))
+            await send(
+                {
+                    "type": "http.response.start",
+                    "status": response.status_code,
+                    "headers": response.raw_headers,
+                }
+            )
+            if response.streaming:
+                async for chunk in response.streaming_body:
                     await send(
                         {
-                            "type": "http.response.start",
-                            "status": response.status_code,
-                            "headers": response.raw_headers,
+                            "type": "http.response.body",
+                            "body": chunk,
+                            "more_body": True,
                         }
                     )
-                    if response.streaming:
-                        async for chunk in response.streaming_body:
-                            await send(
-                                {
-                                    "type": "http.response.body",
-                                    "body": chunk,
-                                    "more_body": True,
-                                }
-                            )
-                        await send(
-                            {
-                                "type": "http.response.body",
-                                "body": b"",
-                                "more_body": False,
-                            }
-                        )
-                    else:
-                        await send(
-                            {"type": "http.response.body", "body": response.body}
-                        )
+                await send(
+                    {"type": "http.response.body", "body": b"", "more_body": False,}
+                )
+            else:
+                await send({"type": "http.response.body", "body": response.body})
+
             # Run background
             async for background_task in self.bg_recv_chan:
                 await background_task()
