@@ -11,12 +11,13 @@ repo_url: https://github.com/erewok/tokamak
 edit_uri: ""
 
 nav:
-    - Radix Tree: 'radix_tree.md'
+    - Radix Tree: 'index.md'
 
 markdown_extensions:
   - markdown.extensions.codehilite:
       guess_lang: false
   - mkautodoc
+
 
 extra_javascript:
   - 'js/chat.js'
