@@ -58,7 +58,7 @@ def large_tree(test_routes: typing.List[str]) -> Tree:
     return tree
 
 
-LARGE_PATHOLOGICAL_PATHS = [
+LARGE_PATH_LIST = [
     "/",
     "/events",
     "/repos/{owner}/{repo}/events",
@@ -210,5 +210,5 @@ LARGE_PATHOLOGICAL_PATHS = [
 
 
 @pytest.fixture(scope="module")
-def pathological_paths() -> typing.List[str]:
-    return LARGE_PATHOLOGICAL_PATHS
+def large_path_list() -> typing.List[str]:
+    return LARGE_PATH_LIST
