@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Tuple
 
 from tokamak import methods as tokmethods
 from tokamak.radix_tree import tree
@@ -99,7 +99,7 @@ class AsgiRouter:
         if routes:
             self.build_route_tree(routes)
 
-    def build_route_tree(self, routes: Iterable[Route]):
+    def build_route_tree(self, routes: Iterable[Route]) -> None:
         """
         Builds the full routing tree.
 
@@ -109,7 +109,7 @@ class AsgiRouter:
         for route in routes:
             self.add_route(route)
 
-    def add_route(self, route: Route):
+    def add_route(self, route: Route) -> None:
         """
         Adds a single route to the tree.
 
@@ -118,12 +118,15 @@ class AsgiRouter:
         """
         self.tree.insert(route.path, route)
 
-    def get_route(self, path):
+    def get_route(self, path: str) -> Tuple[Route, dict[str, str]]:
         """
         Search for a matching route by path.
 
         Args:
             path (str): The path to search for.
+
+        Returns:
+            Tuple[Router, context-dictionary]
 
         Raises `UnknownEndpoint` if no path matched.
         """
