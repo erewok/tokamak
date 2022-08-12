@@ -1,9 +1,10 @@
 from functools import partial
 import logging
 import traceback
-from typing import Awaitable, Callable, Iterable, Optional, Tuple
+from typing import Awaitable, Callable, Optional
 
 from tokamak import methods, router
+from tokamak.web import errors
 from tokamak.web.request import Request
 from tokamak.web.response import Response
 
@@ -58,7 +59,7 @@ class Tokamak:
         request_time_limit: Optional[int] = None,
         cancelled_request_handler: Optional[
             Callable[[Request], Awaitable[Response]]
-        ] = default_cancelled_request_handler,
+        ] = errors.default_cancelled_request_handler,
         lifespan: Callable[["Tokamak", str], Awaitable["Tokamak"]] = lifespan_identity,
     ):
         self.router = router
@@ -97,6 +98,9 @@ class Tokamak:
                 logger.warn("~°°···°°°~ Shutting down tokamak ~°°···🚉···°°°~ ")
                 try:
                     await self.lifespan_func(self, message_type=message["type"])
+                    await self.bg_send_chan.aclose()
+                    await self.bg_recv_chan.aclose()
+
                 except Exception:
                     await send(
                         {
@@ -108,66 +112,63 @@ class Tokamak:
                     await send({"type": "lifespan.shutdown.complete"})
                 return None
 
-    async def http(self, scope, receive, send, nursery):
+    async def http(self, scope, receive, send):
         """ """
         path: str = scope.get("path", "")
-        route, context = self.router.get_route(path)
-        request = Request(context, scope, receive, path, self.bg_send_chan.clone())
+        try:
+            route, context = self.router.get_route(path)
+        except router.UnknownEndpoint:
+            await errors.unknown_handler(scope, receive, send)
+            return None
 
-        async with self.bg_send_chan, self.bg_recv_chan:
-            # Any application handler we've been given may not have
-            # a checkpoint so we insert an arbitrary one here
-            await trio.sleep(0)
-
-            request_cancelled = False
-            # Run handler now and get `Response`
-            if self.request_time_limit:
-                with trio.move_on_after(
-                    self.request_time_limit
-                ) as request_cancel_scope:
-                    async with trio.open_nursery():
-                        response = await route(
-                            request, method=scope.get(methods.SCOPE_METHOD_KEY)
-                        )
-                if request_cancel_scope.cancelled_caught:
-                    request_cancelled = True
-                    response = await self.cancelled_request_handler(request)
-            else:
-                response = await route(
-                    request, method=scope.get(methods.SCOPE_METHOD_KEY)
-                )
-
-            await send(
-                {
-                    "type": "http.response.start",
-                    "status": response.status_code,
-                    "headers": response.raw_headers,
-                }
+        # In order to support timeout-cancellations, we open a oneshot channel here
+        # Request handlers must put their responses onto the channel
+        async with trio.open_nursery() as nursery:
+            (
+                handler_response_send_chan,
+                response_recv_chan,
+            ) = trio.open_memory_channel(1)
+            request = Request(
+                context,
+                scope,
+                receive,
+                path,
+                self.bg_send_chan.clone(),
+                handler_response_send_chan,
             )
-            if response.streaming:
-                async for chunk in response.streaming_body:
-                    await send(
-                        {
-                            "type": "http.response.body",
-                            "body": chunk,
-                            "more_body": True,
-                        }
-                    )
-                await send(
-                    {
-                        "type": "http.response.body",
-                        "body": b"",
-                        "more_body": False,
-                    }
+            async with handler_response_send_chan, response_recv_chan:
+                # Any application handler we've been given may not have
+                # a checkpoint so we insert an arbitrary one here
+                await trio.sleep(0)
+                route_handling_fn = partial(
+                    route, request, method=scope.get(methods.SCOPE_METHOD_KEY),
                 )
-            else:
-                await send({"type": "http.response.body", "body": response.body})
+
+                request_cancelled = False
+                # Run handler now and get `Response`
+                if self.request_time_limit:
+                    with trio.move_on_after(
+                        self.request_time_limit
+                    ) as request_cancel_scope:
+                        async with trio.open_nursery() as child_nursery:
+                            child_nursery.start_soon(route_handling_fn)
+                    if request_cancel_scope.cancelled_caught:
+                        request_cancelled = True
+                        cancellation_handler = partial(
+                            self.cancelled_request_handler, request
+                        )
+                        nursery.start_soon(cancellation_handler)
+                else:
+                    nursery.start_soon(route_handling_fn)
+
+                async for response in response_recv_chan:
+                    await response(send)
 
             # Run background
             if not request_cancelled:
-                await self.process_background()
+                nursery.start_soon(self.process_background)
 
-            return None
+        return None
 
     async def process_background(self):
         async for background_task in self.bg_recv_chan.clone():
@@ -178,18 +179,18 @@ class Tokamak:
             else:
                 await background_task()
 
-    # async def ws(self, scope, receive, send, cancel_scope):
-    #     """
-    #     """
-    #     path: str = scope.get("path", "")
-    #     headers: Iterable[Tuple[bytes, bytes]] = scope.get("headers", [])
-    #     qparams: Optional[bytes] = scope.get("query_string")
-    #     http_version: Optional[str] = scope.get("http_version")
-    #     method: Optional[str] = scope.get("method")
+    async def ws(self, scope, receive, send):
+        """
+        """
+        path: str = scope.get("path", "")
+        headers: Iterable[Tuple[bytes, bytes]] = scope.get("headers", [])
+        qparams: Optional[bytes] = scope.get("query_string")
+        http_version: Optional[str] = scope.get("http_version")
+        method: Optional[str] = scope.get("method")
 
-    #     bg_send_chan, bg_recv_chan = trio.open_memory_channel(
-    #         self.background_task_limit
-    #     )
+        bg_send_chan, bg_recv_chan = trio.open_memory_channel(
+            self.background_task_limit
+        )
 
     async def __call__(self, scope, receive, send):
         scope["app"] = self
@@ -197,6 +198,6 @@ class Tokamak:
             if scope["type"] == "lifespan":
                 nursery.start_soon(self.lifespan, scope, receive, send)
             elif scope["type"] == "http":
-                nursery.start_soon(self.http, scope, receive, send, nursery)
+                nursery.start_soon(self.http, scope, receive, send)
             elif scope["type"] == "websocket":
-                nursery.start_soon(self.ws, scope, receive, send, nursery)
+                nursery.start_soon(self.ws, scope, receive, send)

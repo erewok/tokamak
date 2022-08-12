@@ -42,7 +42,7 @@ async def bg_task(arg1=None):
 
 
 async def index(request: Request):
-    return Response(body=b"ok")
+    await request.respond_with(Response(body=b"ok"))
 
 
 async def context_matcher(request: Request):
@@ -63,12 +63,12 @@ async def context_matcher(request: Request):
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     request.app.db[request.path] = payload
     await request.register_background(partial(bg_task, arg1="some kwarg"))
-    return Response(body=payload)
+    await request.respond_with(Response(body=payload))
 
 
 async def timeout_request_test(request: Request):
     await trio.sleep(2)
-    return Response(body=b"ok")
+    await request.respond_with(Response(body=b"ok"))
 
 
 ROUTES = [

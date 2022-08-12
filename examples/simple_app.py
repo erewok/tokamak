@@ -59,12 +59,12 @@ async def handler(request: Request):
     message = await request.receive()
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
-    return Response(body=payload)
+    await request.respond_with(Response(body=payload))
 
 
 async def basic_handler(request: Request):
     message = await request.receive()
-    return Response(body=b"ok")
+    await request.respond_with(Response(body=b"ok"))
 
 
 def make_router():

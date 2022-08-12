@@ -42,6 +42,19 @@ class Response:
 
         return raw_headers
 
-
-UnknownResourceResponse = Response(body=b"Unknown Resource", status_code=404)
-MethodNotAllowedResponse = Response(body=b"Method not allowed", status_code=405)
+    async def __call__(self, send) -> None:
+        await send(
+            {
+                "type": "http.response.start",
+                "status": self.status_code,
+                "headers": self.raw_headers,
+            }
+        )
+        if self.streaming:
+            async for chunk in self.streaming_body:
+                await send(
+                    {"type": "http.response.body", "body": chunk, "more_body": True}
+                )
+            await send({"type": "http.response.body", "body": b"", "more_body": False})
+        else:
+            await send({"type": "http.response.body", "body": self.body})
