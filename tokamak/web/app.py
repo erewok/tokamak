@@ -109,8 +109,7 @@ class Tokamak:
                 return None
 
     async def http(self, scope, receive, send, nursery):
-        """
-        """
+        """ """
         path: str = scope.get("path", "")
         route, context = self.router.get_route(path)
         request = Request(context, scope, receive, path, self.bg_send_chan.clone())
@@ -155,7 +154,11 @@ class Tokamak:
                         }
                     )
                 await send(
-                    {"type": "http.response.body", "body": b"", "more_body": False,}
+                    {
+                        "type": "http.response.body",
+                        "body": b"",
+                        "more_body": False,
+                    }
                 )
             else:
                 await send({"type": "http.response.body", "body": response.body})

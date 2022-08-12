@@ -22,6 +22,7 @@ pytest-cov = "^3.0.0"
 pytest-pycodestyle = "^2.3.0"
 pytest-mypy = "^0.9.1"
 twine = "^3.8.0"
+Werkzeug = { git = "https://github.com/pallets/werkzeug.git", branch = "main" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
