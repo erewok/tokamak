@@ -1,64 +1,21 @@
-import typing
+"""
+This script is adapted almost entirely from
+https://gist.github.com/pgjones/c71d07a5a11bc96326a84fca9e24643b
+Authored by pgjones.
+"""
 
-import pytest
+from random import choice
+from string import Formatter
+from timeit import timeit
 
-from tokamak.radix_tree import Tree
+# With thanks to https://github.com/richardolsson/falcon-routing-survey for the paths below
+from werkzeug.routing import Map, Rule
+from werkzeug.routing.matcher import StateMachineMatcher
 
-TEST_ROUTES = [
-    "/",
-    "/contact/",
-    "/co",
-    "/c",
-    "/cmd/{tool}/{sub}",
-    "/cmd/{tool}/",
-    "/dcb/{tool}/",  # similar structure to test if ordering matters
-    "/dcb/{tool}/{sub}",
-    "/a/b/c/d/e/f",
-    "/a/b/c/d/e/g",
-    "/a/b/c/d/e/h",
-    "/a/b/c/d/e/f/g/h",
-    "/src/{filepath:*}",
-    "/src/data",
-    "/search/",
-    "/search/{query}",
-    "/user_{name}",
-    "/user_{name}/dept",
-    "/files/{dir}/{filepath:*}",
-    "/doc/",
-    "/doc/code_faq.html",
-    "/doc/code1.html",
-    "/info/{user}",
-    "/info/{user}/project",
-    "/info/{user}/project/{project}",
-    "/info/{user}/project/{project}/dept",
-    "/info/{user}/project/{project}/dept/{dept}",
-    "/regex/{name:[a-zA-Z]+}/test",
-    (
-        "/optional/{name:[a-zA-Z]+}/{word}/plus/"
-        "{uid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}"
-    ),
-    "/γένωνται/{name}/aaa",
-    "/darüber/schloß",
-    "/darüber/schloß/ritter",
-    "/hello/test",
-    "/hello/{name}",
-]
+from tokamak.router import AsgiRouter, Route
 
 
-@pytest.fixture(scope="module")
-def test_routes() -> typing.List[str]:
-    return TEST_ROUTES
-
-
-@pytest.fixture(scope="module")
-def large_tree(test_routes: typing.List[str]) -> Tree:
-    tree = Tree()
-    for path in test_routes:
-        tree.insert(path, path)
-    return tree
-
-
-LARGE_PATHOLOGICAL_PATHS = [
+PATHS = [
     "/",
     "/events",
     "/repos/{owner}/{repo}/events",
@@ -209,6 +166,58 @@ LARGE_PATHOLOGICAL_PATHS = [
 ]
 
 
-@pytest.fixture(scope="module")
-def pathological_paths() -> typing.List[str]:
-    return LARGE_PATHOLOGICAL_PATHS
+def handler(request):
+    return None
+
+
+tree_map = Map()
+tree_map._matcher = StateMachineMatcher(False)
+tokamak_router = AsgiRouter()
+
+
+for path in PATHS:
+    tree_map.add(
+        Rule(path.replace("{", "<").replace("}", ">"), endpoint="a", methods=["GET"])
+    )
+    tokamak_router.add_route(Route(path, handler=handler, methods=["GET"]))
+
+tree_adapter = tree_map.bind("example.org", "/")
+
+
+def match(adapter, test_path):
+    adapter.match(test_path)
+
+
+def asgi_router_lookup(test_path):
+    tokamak_router.get_route(test_path)
+
+
+def main():
+    print(f"{'Path'.ljust(70)} | Ratio (percent difference from baseline)")
+    times = 10_000
+    for _ in range(20):
+        path = choice(PATHS)
+        names = [fn for _, fn, _, _ in Formatter().parse(path) if fn is not None]
+        test_path = path.format(**{name: "abc" for name in names})
+        tree_time = timeit(
+            "match(tree_adapter, test_path)",
+            globals=globals() | {"test_path": test_path},
+            number=times,
+        )
+        asgi_router_time = timeit(
+            "asgi_router_lookup(test_path)",
+            globals=globals() | {"test_path": test_path},
+            number=times,
+        )
+        if asgi_router_time < tree_time:
+            print(
+                f"Tokamak Tree is quicker: {path.ljust(70)} | {asgi_router_time / tree_time:.2f}"
+            )
+        else:
+            print(
+                f"Werkzeug Tree is quicker: {path.ljust(70)} | {tree_time / asgi_router_time:.2f}"
+            )
+
+
+if __name__ == "__main__":
+    main()
