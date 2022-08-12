@@ -1,3 +1,9 @@
+"""
+This script is adapted almost entirely from
+https://gist.github.com/pgjones/c71d07a5a11bc96326a84fca9e24643b
+Authored by pgjones.
+"""
+
 from random import choice
 from string import Formatter
 from timeit import timeit
