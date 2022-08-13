@@ -1,16 +1,17 @@
 # Tokamak
 
-> In a star as in a fusion device, plasmas provide the environment in which light elements can fuse and yield energy.
+[![PyPI version fury.io](https://badge.fury.io/py/tokamak.svg)](https://pypi.python.org/pypi/tokamak/)
+[![PyPI download month](https://img.shields.io/pypi/dm/tokamak.svg)](https://pypi.python.org/pypi/tokamak/)
 
 Tokamak is a router based on Radix trees intended for ASGI Python applications.
 
-## Project Goals (Why Did You Build This?)
+## Project Goals
 
-This project was created to fill a gap in the Python ecosystem. There is a variety of HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, no such library exists and most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
+There are many HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
 
 The primary goal for this project is to provide a radix-tree-based router for Python web frameworks (or any custom ASGI or WSGI implementation).
 
-**This library is currently considered to be _experimental_.**
+**This library is _experimental_.**
 
 As a secondary goal, a minimal web framework may in the future also be provided for building web applications in order to explore this space. However, more fully featured frameworks should be considered before this one. Producing a feature-complete web framework is _not_ a primary goal of this project.
 
@@ -197,7 +198,7 @@ OK
 
 ## Examples
 
-Runnable examples are provided in the [`./examples`](./examples/) directory. For instance, you can run an example application with `trio` and `hypercorn` like so:
+Runnable examples are provided in the [`examples` directory](https://github.com/erewok/tokamak/examples). For instance, you can run the experimental `tokamak` application with `trio` and `hypercorn` like so:
 
 ```sh
 $ poetry install -E "full"
