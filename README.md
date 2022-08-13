@@ -5,6 +5,8 @@
 
 Tokamak is a router based on Radix trees intended for ASGI Python applications.
 
+[[Read the documentation](https://tokamak.readthedocs.io/en/latest/)]
+
 ## Primary Project Goals
 
 There are many HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
@@ -24,11 +26,11 @@ The reasons for building and including this web framework are as follows:
 
 Developers should consider more fully-featured web frameworks _before_ this one and there are many to choose from:
 
-- Django
-- Flask
-- Starlette
-- Tornado
-- Quart
+- [Django](https://www.djangoproject.com/)
+- [Flask](https://flask.palletsprojects.com/en/2.2.x/)
+- [Starlette](https://www.starlette.io/)
+- [Tornado](https://www.tornadoweb.org/en/stable/)
+- [Quart](https://pgjones.gitlab.io/quart/)
 
 ## Installation
 

@@ -1,6 +1,6 @@
-from functools import partial
 import logging
 import traceback
+from functools import partial
 from typing import Awaitable, Callable, Optional
 
 from tokamak import methods, router
@@ -36,9 +36,12 @@ class Tokamak:
     """
     When using the Tokamak App instance, you should define handlers
     that take a `tokamak.web.request.Request` instance.
-    The `tokamak.web.request.Request` uses in-memory-channels to:
+
+    `tokamak.web.request.Request` uses in-memory-channels to:
       - send back a Response, and
       - to schedule background work.
+
+    This design aids in building in cancellation primitives (via Trio) into this library.
 
     Args:
 
@@ -151,7 +154,9 @@ class Tokamak:
                 # a checkpoint so we insert an arbitrary one here
                 await trio.sleep(0)
                 route_handling_fn = partial(
-                    route, request, method=scope.get(methods.SCOPE_METHOD_KEY),
+                    route,
+                    request,
+                    method=scope.get(methods.SCOPE_METHOD_KEY),
                 )
 
                 request_cancelled = False
@@ -191,17 +196,8 @@ class Tokamak:
                 await background_task()
 
     async def ws(self, scope, receive, send):
-        """
-        """
-        path: str = scope.get("path", "")
-        headers: Iterable[Tuple[bytes, bytes]] = scope.get("headers", [])
-        qparams: Optional[bytes] = scope.get("query_string")
-        http_version: Optional[str] = scope.get("http_version")
-        method: Optional[str] = scope.get("method")
-
-        bg_send_chan, bg_recv_chan = trio.open_memory_channel(
-            self.background_task_limit
-        )
+        """Websockets are currently unsupported"""
+        raise NotImplementedError("Websockets are current unsupported")
 
     async def __call__(self, scope, receive, send):
         """A Tokamak application will be invoked here on each request"""

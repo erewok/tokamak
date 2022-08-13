@@ -61,7 +61,7 @@ async def generic_handler(request: Request):
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     request.app.db[request.path] = payload
     await request.register_background(partial(bg_task, arg1="some kwarg"))
-    await request.respond_with(Response(body=payload))
+    return await request.respond_with(Response(body=payload))
 
 
 ROUTES = [

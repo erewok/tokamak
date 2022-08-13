@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Callable, Dict
 
 import trio
 
@@ -9,13 +9,20 @@ class Request:
     """The Tokamak request class for sending responses and scheduling
     background tasks.
 
+    Args:
 
+        context (Dict[str, str]): Context from the matching path
+        scope (dict): Request scope dictionary
+        receive (Channel): Channel for receiving the request body
+        path (str): Path matched for this request
+        background_chan: Send channel for scheduling background tasks
+        response_chan: Send channel for submitting a response
     """
 
     def __init__(
         self,
         context: Dict[str, str],
-        scope,
+        scope: Dict[str, str],
         receive,
         path: str,
         background_chan: trio._channel.MemorySendChannel,
@@ -31,10 +38,20 @@ class Request:
 
     @property
     def app(self) -> "tokamak.web.app.Tokamak":
+        """
+        Returns:
+            Tokamak application instance
+        """
         return self.scope.get("app")
 
-    async def register_background(self, callable, args=None, kwargs=None) -> None:
-        """Method to schedule background tasks in a request handler"""
+    async def register_background(self, callable: Callable) -> None:
+        """
+        Method to schedule background tasks in a request handler
+
+        Args:
+
+            callable: Arbitrary async function
+        """
         async with self.background:
             await self.background.send(callable)
 
@@ -44,6 +61,10 @@ class Request:
 
         This allows the Tokamak framework to properly handle cancellations and time-limits
         around request-handling.
+
+        Args:
+
+            response: Response class to send to client.
         """
         async with self.response_chan:
             await self.response_chan.send(response)

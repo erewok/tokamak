@@ -1,21 +1,33 @@
 from functools import cached_property
-from typing import List, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 
 
 class Response:
-    """Tokamak Web framework response class"""
+    """
+    Tokamak Web framework response class
+
+    Args:
+        status_code: HTTP status code (default 200).
+        headers: HTTP response headers.
+        body: HTTP response body
+        content_type: Content-Type header value (default "text/plain")
+        charset: Character set for Content-Type value (default "utf-8")
+        streaming: Whether to stream this response (for large payloads).
+        streaming_body: Optional Async iterator of bytes for streaming responses.
+    """
 
     def __init__(
         self,
         status_code: int = 200,
-        headers: dict = None,
+        headers: Optional[Dict[str, str]] = None,
         body: bytes = b"",
         content_type: str = "text/plain",
         charset: str = "utf-8",
         streaming: bool = False,
+        streaming_body: Optional[Callable] = None,
     ) -> None:
         self.status_code = status_code
-        self.streaming_body = False
+        self.streaming_body = streaming_body
         self.body = body
         self._headers = headers or dict()
         self.content_type = content_type

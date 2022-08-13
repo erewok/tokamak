@@ -1,6 +1,10 @@
 # Tokamak Experimental Web Framework
 
-This library can be installed with the extra-feature "web" in order to use the experimental web framework.
+This library can be installed with the extra-feature "web" in order to use the experimental web framework:
+
+```sh
+pip install "tokamak[web]"
+```
 
 This web framework is included as an optional install in this library for two reasons:
 
@@ -12,13 +16,23 @@ This page describes the `Tokamak` web application. Its behavior is highly limite
 - Error handling
 - Middleware
 
+There are other more fully-featured web frameworks that include these features and more:
+
+- [Django](https://www.djangoproject.com/)
+- [Flask](https://flask.palletsprojects.com/en/2.2.x/)
+- [Tornado](https://www.tornadoweb.org/en/stable/)
+- [Starlette](https://www.starlette.io/)
+- [Quart](https://pgjones.gitlab.io/quart/)
+
 ## `Tokamak` Application Example
 
 Following is an example of using the `Tokamak` application in order to build a basic web server.
 
 ### Application Imports
 
-First, here are the imports we'll use for this sample application as well as setting up a logger and a fake database object. These will not be repeated below for simplicity:
+First, here are the imports we'll use for this sample application. In addition we will set up a logger and a fake database object.
+
+These lines will not be repeated below for simplicity, but you can imagine that they're at the top of the module we're creating:
 
 ```python
 import json
@@ -71,24 +85,33 @@ async def bg_task(arg1=None):
 
 
 async def generic_handler(request: Request):
+    # Various items are available on the `scope` dict
+    # associated with this request.
     headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
     qparams: Optional[bytes] = request.scope.get("query_string")
     http_version: Optional[str] = request.scope.get("http_version")
     method: Optional[str] = request.scope.get("method")
 
-    # Dump out contents of request
+    # Dump out contents of request for demonstration
     logger.info(
         (
             f"{request.app.db=}, {request.context=}, "
             f"{request.scope=}, {headers=}, {qparams=}, {http_version=}, {method=}"
         )
     )
+    # We have access to the HTTP request body here
     message = await request.receive()
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
+
+    # We can "use" our database here
     request.app.db[request.path] = payload
+
+    # To schedule a background task, we call `register_background` on the `Request`
     await request.register_background(partial(bg_task, arg1="some kwarg"))
-    await request.respond_with(Response(body=payload))
+
+    # To send back a response, we call `respond_with` on the `Request`
+    return await request.respond_with(Response(body=payload))
 ```
 
 ### Routes and Tokamak Application
@@ -98,6 +121,7 @@ Now, we can build a `Tokamak` application:
 ```python
 
 ROUTES = [
+    # A `Route` takes a path and a handler as well as a list of methods
     Route("/", handler=generic_handler, methods=["GET"]),
     Route("/timeout", handler=timeout_request_test, methods=["GET"]),
 ]
@@ -105,6 +129,7 @@ ROUTES = [
 if __name__ == "__main__":
     config = Config()
     config.bind = ["localhost:8000"]
+    # This is the Tokamak application instance
     app = Tokamak(
         router=AsgiRouter(routes=ROUTES),
         request_time_limit=1,
