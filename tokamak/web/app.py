@@ -27,8 +27,9 @@ async def lifespan_identity(app: "Tokamak", message_type: str = "") -> "Tokamak"
     return app
 
 
-async def default_cancelled_request_handler(request: Request) -> Response:
-    return Response(status_code=408, body=b"Request time limit exceeded")
+async def unknown_handler(scope, receive, send):
+    """Unknown endpoint handler (404)"""
+    await errors.UnknownResourceResponse(send)
 
 
 class Tokamak:
@@ -39,13 +40,15 @@ class Tokamak:
       - send back a Response, and
       - to schedule background work.
 
-    **Parameters:**
+    Args:
 
-    * **router** - a `tokamak.router.AsgiRouter` instance.
-    * **lifespan** - an async function with signature:
-    `async def lifespan(tok: Tokamak, message_type: str)`.
-    * **background_task_limit** - Limit for background tasks allowed for
-    _each_ handler before back-pressure is applied.
+        router (Optional[`tokamak.router.AsgiRouter`]): A router instance.
+            str)`.
+        background_task_time_limit (Optional[int]): Runtime Limit (in seconds) for background tasks.
+        background_task_limit (int): Total limit of schedulable background tasks (backpressure will apply)
+        request_time_limit (Optional[int]): Runtime Limit (in seconds) for request handlers.
+        cancelled_request_handler (Optional[Callable]): Handler for cancelled requests
+        lifespan (Callable): An async function with signature: `async def lifespan(tok: Tokamak, message_type:
     """
 
     LIFESPAN_STARTUP = "lifespan.startup"
@@ -79,6 +82,11 @@ class Tokamak:
         self.cancelled_request_handler = cancelled_request_handler
 
     async def lifespan(self, scope, receive, send):
+        """
+        Invoked for the lifespan activities.
+
+        This method will be run on app start and app shutdown.
+        """
         while True:
             message = await receive()
             if message["type"] == self.LIFESPAN_STARTUP:
@@ -113,12 +121,14 @@ class Tokamak:
                 return None
 
     async def http(self, scope, receive, send):
-        """ """
+        """
+        HTTP request handler.
+        """
         path: str = scope.get("path", "")
         try:
             route, context = self.router.get_route(path)
         except router.UnknownEndpoint:
-            await errors.unknown_handler(scope, receive, send)
+            await unknown_handler(scope, receive, send)
             return None
 
         # In order to support timeout-cancellations, we open a oneshot channel here
@@ -171,6 +181,7 @@ class Tokamak:
         return None
 
     async def process_background(self):
+        """Method that runs to process background requests"""
         async for background_task in self.bg_recv_chan.clone():
             if self.background_task_time_limit:
                 with trio.move_on_after(self.background_task_time_limit):
@@ -193,6 +204,7 @@ class Tokamak:
         )
 
     async def __call__(self, scope, receive, send):
+        """A Tokamak application will be invoked here on each request"""
         scope["app"] = self
         async with trio.open_nursery() as nursery:
             if scope["type"] == "lifespan":

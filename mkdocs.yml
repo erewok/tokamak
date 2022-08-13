@@ -1,24 +1,86 @@
 site_name: Tokamak
 site_description: An HTTP router for Python projects based on radix trees.
-
-theme:
-    name: 'gitbook'
-    highlightjs: true
-    hljs_style: 'solarized-light'
-
 repo_name: erewok/tokamak
 repo_url: https://github.com/erewok/tokamak
 edit_uri: ""
 
+extra_css:
+- css/mkdocstrings.css
+
 nav:
-    - Radix Tree: 'index.md'
+  - Home: 'index.md'
+  - Routing: 'routing.md'
+  - Experimental Web Framework:
+    - Application: 'web.md'
+  - Code Reference: reference/
+
+theme:
+  name: material
+  logo: donut.png
+  features:
+  - navigation.tabs
+  - navigation.tabs.sticky
+  - navigation.top
+  palette:
+  - media: "(prefers-color-scheme: light)"
+    scheme: default
+    primary: teal
+    accent: purple
+    toggle:
+      icon: material/weather-sunny
+      name: Switch to dark mode
+  - media: "(prefers-color-scheme: dark)"
+    scheme: slate
+    primary: black
+    accent: lime
+    toggle:
+      icon: material/weather-night
+      name: Switch to light mode
 
 markdown_extensions:
-  - markdown.extensions.codehilite:
-      guess_lang: false
-  - mkautodoc
+- admonition
+- callouts:
+    strip_period: no
+- pymdownx.emoji
+- pymdownx.magiclink
+- pymdownx.snippets:
+    check_paths: true
+- pymdownx.superfences
+- pymdownx.tabbed:
+    alternate_style: true
+- pymdownx.tasklist
+- toc:
+    permalink: "§"
 
+plugins:
+- search
+- markdown-exec
+- gen-files:
+    scripts:
+    - docs/gen_ref_nav.py
+- literate-nav:
+    nav_file: nav.md
+- section-index
+- mkdocstrings:
+    handlers:
+      python:
+        paths: [tokamak]
+        import:
+        - https://docs.python.org/3/objects.inv
+        - https://mkdocstrings.github.io/objects.inv
+        - https://mkdocstrings.github.io/griffe/objects.inv
+        options:
+          docstring_style: google
+          docstring_options:
+            ignore_init_summary: no
+          merge_init_into_class: yes
+          separate_signature: yes
+          show_source: no
+          show_root_full_path: no
 
-extra_javascript:
-  - 'js/chat.js'
-  - 'js/sidecar-1.5.0.js'
+extra:
+  social:
+  - icon: fontawesome/brands/github
+    link: https://github.com/erewok
+  - icon: fontawesome/brands/twitter
+    link: https://twitter.com/erewok

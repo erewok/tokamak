@@ -60,25 +60,21 @@ class AsgiRouter:
     with an optional configuration for matching trailing slashes or not.
 
     Example:
-        async def some_handler(request: Request):
-            headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
-            qparams: Optional[bytes] = request.scope.get("query_string")
-            http_version: Optional[str] = request.scope.get("http_version")
-            method: Optional[str] = request.scope.get("method")
-            print(request.context, request.scope, headers, qparams, http_version, method)
+        We can define an endpoint handler to associate with any route:
 
-            message = await request.receive()
-            body = message.get("body") or b"{}"
-            payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
-            await request.register_background(partial(bg_task, arg1="some kwarg"))
-            return Response(body=payload)
+            async def some_handler(scope, receive, send):
+                message = await receive()
+                body = message.get("body") or b"{}"
+                payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
+                return Response(body=payload)
 
+        After that, we can include associate the handler with an endpoint:
 
-        AsgiRouter(routes=[
-            Route("/", handler=some_handler, methods=["GET"]),
-            Route("/files/{dir}/{filepath:*}", handler=some_handler, methods=["POST"]),
+            AsgiRouter(routes=[
+                Route("/", handler=some_handler, methods=["GET"]),
+                Route("/files/{dir}/{filepath:*}", handler=some_handler, methods=["POST"]),
 
-        ])
+            ])
 
     A dynamic route takes a name for the captured variable and a regex matcher,
     like so: `"/regex/{name:[a-zA-Z]+}/test"`

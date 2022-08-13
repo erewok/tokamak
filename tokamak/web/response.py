@@ -1,7 +1,10 @@
 from functools import cached_property
+from typing import List, Tuple
 
 
 class Response:
+    """Tokamak Web framework response class"""
+
     def __init__(
         self,
         status_code: int = 200,
@@ -20,7 +23,8 @@ class Response:
         self.streaming = streaming
 
     @cached_property
-    def raw_headers(self):
+    def raw_headers(self) -> List[Tuple[bytes, bytes]]:
+        """Headers are constructed for an ASGI send response"""
         raw_headers = [
             (k.lower().encode("latin-1"), v.encode("latin-1"))
             for k, v in self._headers.items()

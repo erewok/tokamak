@@ -279,7 +279,7 @@ python-versions = ">=3.6.1"
 
 [[package]]
 name = "hypothesis"
-version = "6.54.2"
+version = "6.54.3"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -291,20 +291,20 @@ exceptiongroup = {version = ">=1.0.0rc8", markers = "python_version < \"3.11\""}
 sortedcontainers = ">=2.1.0,<3.0.0"
 
 [package.extras]
-all = ["black (>=19.10b0)", "click (>=7.0)", "django (>=3.2)", "dpcontracts (>=0.4)", "lark-parser (>=0.6.5)", "libcst (>=0.3.16)", "numpy (>=1.9.0)", "pandas (>=1.0)", "pytest (>=4.6)", "python-dateutil (>=1.4)", "pytz (>=2014.1)", "redis (>=3.0.0)", "rich (>=9.0.0)", "importlib-metadata (>=3.6)", "backports.zoneinfo (>=0.2.1)", "tzdata (>=2022.1)"]
-cli = ["click (>=7.0)", "black (>=19.10b0)", "rich (>=9.0.0)"]
-codemods = ["libcst (>=0.3.16)"]
-dateutil = ["python-dateutil (>=1.4)"]
-django = ["django (>=3.2)"]
-dpcontracts = ["dpcontracts (>=0.4)"]
-ghostwriter = ["black (>=19.10b0)"]
-lark = ["lark-parser (>=0.6.5)"]
-numpy = ["numpy (>=1.9.0)"]
-pandas = ["pandas (>=1.0)"]
-pytest = ["pytest (>=4.6)"]
-pytz = ["pytz (>=2014.1)"]
+zoneinfo = ["tzdata (>=2022.1)", "backports.zoneinfo (>=0.2.1)"]
 redis = ["redis (>=3.0.0)"]
-zoneinfo = ["backports.zoneinfo (>=0.2.1)", "tzdata (>=2022.1)"]
+pytz = ["pytz (>=2014.1)"]
+pytest = ["pytest (>=4.6)"]
+pandas = ["pandas (>=1.0)"]
+numpy = ["numpy (>=1.9.0)"]
+lark = ["lark-parser (>=0.6.5)"]
+ghostwriter = ["black (>=19.10b0)"]
+dpcontracts = ["dpcontracts (>=0.4)"]
+django = ["django (>=3.2)"]
+dateutil = ["python-dateutil (>=1.4)"]
+codemods = ["libcst (>=0.3.16)"]
+cli = ["rich (>=9.0.0)", "black (>=19.10b0)", "click (>=7.0)"]
+all = ["tzdata (>=2022.1)", "backports.zoneinfo (>=0.2.1)", "importlib-metadata (>=3.6)", "rich (>=9.0.0)", "redis (>=3.0.0)", "pytz (>=2014.1)", "python-dateutil (>=1.4)", "pytest (>=4.6)", "pandas (>=1.0)", "numpy (>=1.9.0)", "libcst (>=0.3.16)", "lark-parser (>=0.6.5)", "dpcontracts (>=0.4)", "django (>=3.2)", "click (>=7.0)", "black (>=19.10b0)"]
 
 [[package]]
 name = "idna"
@@ -411,6 +411,28 @@ importlib-metadata = {version = ">=4.4", markers = "python_version < \"3.10\""}
 testing = ["pyyaml", "coverage"]
 
 [[package]]
+name = "markdown-callouts"
+version = "0.2.0"
+description = "Markdown extension: a classier syntax for admonitions"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+Markdown = ">=3.3,<4.0"
+
+[[package]]
+name = "markdown-exec"
+version = "0.7.0"
+description = "Utilities to execute code blocks in Markdown files."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+pymdown-extensions = ">=9"
+
+[[package]]
 name = "markupsafe"
 version = "2.1.1"
 description = "Safely add untrusted strings to HTML/XML markup."
@@ -425,17 +447,6 @@ description = "A deep merge function for 🐍."
 category = "dev"
 optional = false
 python-versions = ">=3.6"
-
-[[package]]
-name = "mkautodoc"
-version = "0.2.0"
-description = "AutoDoc for MarkDown"
-category = "dev"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-Markdown = "*"
 
 [[package]]
 name = "mkdocs"
@@ -473,12 +484,72 @@ Markdown = ">=3.3"
 mkdocs = ">=1.1"
 
 [[package]]
-name = "mkdocs-gitbook"
-version = "0.0.1"
-description = "Default theme for GitBook for Mkdocs"
+name = "mkdocs-coverage"
+version = "0.2.5"
+description = "MkDocs plugin to integrate your coverage HTML report into your site."
+category = "dev"
+optional = false
+python-versions = ">=3.6.2"
+
+[package.dependencies]
+mkdocs = ">=1.2"
+
+[[package]]
+name = "mkdocs-gen-files"
+version = "0.3.5"
+description = "MkDocs plugin to programmatically generate documentation pages during the build"
+category = "dev"
+optional = false
+python-versions = ">=3.7,<4.0"
+
+[package.dependencies]
+mkdocs = ">=1.0.3,<2.0.0"
+
+[[package]]
+name = "mkdocs-literate-nav"
+version = "0.4.1"
+description = "MkDocs plugin to specify the navigation in Markdown instead of YAML"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+mkdocs = ">=1.0.3,<2.0.0"
+
+[[package]]
+name = "mkdocs-material"
+version = "7.3.6"
+description = "A Material Design theme for MkDocs"
 category = "dev"
 optional = false
 python-versions = "*"
+
+[package.dependencies]
+jinja2 = ">=2.11.1"
+markdown = ">=3.2"
+mkdocs = ">=1.2.3"
+mkdocs-material-extensions = ">=1.0"
+pygments = ">=2.10"
+pymdown-extensions = ">=9.0"
+
+[[package]]
+name = "mkdocs-material-extensions"
+version = "1.0.3"
+description = "Extension pack for Python Markdown."
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
+name = "mkdocs-section-index"
+version = "0.3.4"
+description = "MkDocs plugin to allow clickable sections that lead to an index page"
+category = "dev"
+optional = false
+python-versions = ">=3.6,<4.0"
+
+[package.dependencies]
+mkdocs = ">=1.1,<2.0"
 
 [[package]]
 name = "mkdocstrings"
@@ -1042,7 +1113,7 @@ web = ["trio"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "1f3525778def8dd819d15c5cc12356a7d923c8991dcf572b3bf65282b56737d3"
+content-hash = "035f32c1a58aa762e35ad4173a8ece6771939a4800ff2d8067eec282d08ddfa1"
 
 [metadata.files]
 anyio = [
@@ -1279,8 +1350,8 @@ hyperframe = [
     {file = "hyperframe-6.0.1.tar.gz", hash = "sha256:ae510046231dc8e9ecb1a6586f63d2347bf4c8905914aa84ba585ae85f28a914"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.54.2-py3-none-any.whl", hash = "sha256:7c3211d2557f8947fbd9f6cded93c2b793e5b756d4433dc52a93d9f8d0bdc46d"},
-    {file = "hypothesis-6.54.2.tar.gz", hash = "sha256:db40e3f296ab940e59e5bbb1794e5b2f9682b601c559b3f68fc294518ba6cff7"},
+    {file = "hypothesis-6.54.3-py3-none-any.whl", hash = "sha256:f1a2f0031ec2c3ff17c1d97bb363ce74bf3e9e5d6c6f0f5a6474702e6ca1ee81"},
+    {file = "hypothesis-6.54.3.tar.gz", hash = "sha256:03749f5e2cb982e54e2a11abcb367b9a260ef8e279387d437145354c080a6bdc"},
 ]
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
@@ -1313,6 +1384,14 @@ keyring = [
 markdown = [
     {file = "Markdown-3.3.7-py3-none-any.whl", hash = "sha256:f5da449a6e1c989a4cea2631aa8ee67caa5a2ef855d551c88f9e309f4634c621"},
     {file = "Markdown-3.3.7.tar.gz", hash = "sha256:cbb516f16218e643d8e0a95b309f77eb118cb138d39a4f27851e6a63581db874"},
+]
+markdown-callouts = [
+    {file = "markdown-callouts-0.2.0.tar.gz", hash = "sha256:ff9da9f713ff784691e9e57ca10acf08d01fe9fea7546a745c831cfd83797f59"},
+    {file = "markdown_callouts-0.2.0-py3-none-any.whl", hash = "sha256:d76b2ef1327ef75c2b5c9ee6e8dc1781aeace9f334b22b57716042a4051c61b7"},
+]
+markdown-exec = [
+    {file = "markdown-exec-0.7.0.tar.gz", hash = "sha256:a4f6939ac36dccac560d3889a518b654748cc57b8de8491c374f9e19c93dfba8"},
+    {file = "markdown_exec-0.7.0-py3-none-any.whl", hash = "sha256:c40feadeddf0070656adf3bb9a1b65a4eb337361b9bca3a47542fbda22306ba8"},
 ]
 markupsafe = [
     {file = "MarkupSafe-2.1.1-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:86b1f75c4e7c2ac2ccdaec2b9022845dbb81880ca318bb7a0a01fbf7813e3812"},
@@ -1360,9 +1439,6 @@ mergedeep = [
     {file = "mergedeep-1.3.4-py3-none-any.whl", hash = "sha256:70775750742b25c0d8f36c55aed03d24c3384d17c951b3175d898bd778ef0307"},
     {file = "mergedeep-1.3.4.tar.gz", hash = "sha256:0096d52e9dad9939c3d975a774666af186eda617e6ca84df4c94dec30004f2a8"},
 ]
-mkautodoc = [
-    {file = "mkautodoc-0.2.0.tar.gz", hash = "sha256:b6e0c89804ba39d453ce5795eb040e5615756f90438ac04f47e97893a86a10cd"},
-]
 mkdocs = [
     {file = "mkdocs-1.3.1-py3-none-any.whl", hash = "sha256:fda92466393127d2da830bc6edc3a625a14b436316d1caf347690648e774c4f0"},
     {file = "mkdocs-1.3.1.tar.gz", hash = "sha256:a41a2ff25ce3bbacc953f9844ba07d106233cd76c88bac1f59cb1564ac0d87ed"},
@@ -1371,9 +1447,29 @@ mkdocs-autorefs = [
     {file = "mkdocs-autorefs-0.4.1.tar.gz", hash = "sha256:70748a7bd025f9ecd6d6feeba8ba63f8e891a1af55f48e366d6d6e78493aba84"},
     {file = "mkdocs_autorefs-0.4.1-py3-none-any.whl", hash = "sha256:a2248a9501b29dc0cc8ba4c09f4f47ff121945f6ce33d760f145d6f89d313f5b"},
 ]
-mkdocs-gitbook = [
-    {file = "mkdocs-gitbook-0.0.1.tar.gz", hash = "sha256:c094f9d77e47d54379a0d3816097b56511e760fedb23dcf89bc925f6ac4e75f3"},
-    {file = "mkdocs_gitbook-0.0.1-py2.py3-none-any.whl", hash = "sha256:e929c3caf655076eaa030128cfd104687b9ec14644d54f4a175d43e13ac60ef8"},
+mkdocs-coverage = [
+    {file = "mkdocs-coverage-0.2.5.tar.gz", hash = "sha256:6a9a796a50b873a62f273d4ac43f41f1f96c1c6c2154038ab6072e253818490a"},
+    {file = "mkdocs_coverage-0.2.5-py3-none-any.whl", hash = "sha256:d94a5c020ff37bd59b7bd27424df1ce57e5437597a627edcf6116366f96997e6"},
+]
+mkdocs-gen-files = [
+    {file = "mkdocs-gen-files-0.3.5.tar.gz", hash = "sha256:d90d9e1676531a0bb96b1287dc28aa41162986de4dc3c00400214724761ff6ef"},
+    {file = "mkdocs_gen_files-0.3.5-py3-none-any.whl", hash = "sha256:69562fddc662482e8f54a00a8b4ede5166ad5384ae4dbb0469f1f338ef3285ca"},
+]
+mkdocs-literate-nav = [
+    {file = "mkdocs-literate-nav-0.4.1.tar.gz", hash = "sha256:9efe26b662f2f901cae5807bfd51446d30ea7e033c2bc43a15d6282c7dfac1ab"},
+    {file = "mkdocs_literate_nav-0.4.1-py3-none-any.whl", hash = "sha256:a4b761792ba21defbe2dfd5e0de6ba451639e1ca0f0661c37eda83cc6261e4f9"},
+]
+mkdocs-material = [
+    {file = "mkdocs-material-7.3.6.tar.gz", hash = "sha256:1b1dbd8ef2508b358d93af55a5c5db3f141c95667fad802301ec621c40c7c217"},
+    {file = "mkdocs_material-7.3.6-py2.py3-none-any.whl", hash = "sha256:1b6b3e9e09f922c2d7f1160fe15c8f43d4adc0d6fb81aa6ff0cbc7ef5b78ec75"},
+]
+mkdocs-material-extensions = [
+    {file = "mkdocs-material-extensions-1.0.3.tar.gz", hash = "sha256:bfd24dfdef7b41c312ede42648f9eb83476ea168ec163b613f9abd12bbfddba2"},
+    {file = "mkdocs_material_extensions-1.0.3-py3-none-any.whl", hash = "sha256:a82b70e533ce060b2a5d9eb2bc2e1be201cf61f901f93704b4acf6e3d5983a44"},
+]
+mkdocs-section-index = [
+    {file = "mkdocs-section-index-0.3.4.tar.gz", hash = "sha256:050151bfe7c0e374f197335e0ecb19c45b53dbafc0f817aa203f0cc24bcf7d10"},
+    {file = "mkdocs_section_index-0.3.4-py3-none-any.whl", hash = "sha256:214f7a6df9d35a5772e9577f3899ff3edd90044064589e6dd4d84615b72a8024"},
 ]
 mkdocstrings = [
     {file = "mkdocstrings-0.19.0-py3-none-any.whl", hash = "sha256:3217d510d385c961f69385a670b2677e68e07b5fea4a504d86bf54c006c87c7d"},
