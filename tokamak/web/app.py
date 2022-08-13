@@ -27,8 +27,8 @@ async def lifespan_identity(app: "Tokamak", message_type: str = "") -> "Tokamak"
     return app
 
 
-async def default_cancelled_request_handler(request: Request) -> Response:
-    return Response(status_code=408, body=b"Request time limit exceeded")
+async def unknown_handler(scope, receive, send):
+    await errors.UnknownResourceResponse(send)
 
 
 class Tokamak:
@@ -118,7 +118,7 @@ class Tokamak:
         try:
             route, context = self.router.get_route(path)
         except router.UnknownEndpoint:
-            await errors.unknown_handler(scope, receive, send)
+            await unknown_handler(scope, receive, send)
             return None
 
         # In order to support timeout-cancellations, we open a oneshot channel here

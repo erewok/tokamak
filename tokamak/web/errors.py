@@ -15,9 +15,5 @@ async def default_cancelled_request_handler(request):
     await request.respond_with(RequestCancelledResponse)
 
 
-async def unknown_handler(request):
-    await request.respond_with(UnknownResourceResponse)
-
-
 async def method_not_allowed(request):
     await request.respond_with(MethodNotAllowedResponse)
