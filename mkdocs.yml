@@ -10,7 +10,6 @@ extra_css:
 nav:
   - Home: 'index.md'
   - Routing: 'routing.md'
-  - Radix Trees: 'radix_trees.md'
   - Experimental Web Framework:
     - Application: 'web.md'
   - Code Reference: reference/
