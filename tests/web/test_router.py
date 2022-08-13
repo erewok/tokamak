@@ -175,7 +175,9 @@ def large_path_to_fake_path():
     return inner
 
 
-@given(strategies.sampled_from(LARGE_PATH_LIST), strategies.text())
+@given(
+    route_path=strategies.sampled_from(LARGE_PATH_LIST), replace_text=strategies.text()
+)
 def test_router(route_path, replace_text, large_path_to_fake_path):
     router = AsgiRouter()
     router.add_route(Route(route_path, handler=lambda x: x, methods=["GET"]))
