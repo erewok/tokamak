@@ -60,7 +60,6 @@ plugins:
     - docs/gen_ref_nav.py
 - literate-nav:
     nav_file: nav.md
-- coverage
 - section-index
 - mkdocstrings:
     handlers:

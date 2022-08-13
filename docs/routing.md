@@ -6,21 +6,21 @@ A routing tree can be constructed of a combination static paths and regex patter
 
 Here's an example of some paths:
 
-- "/doc/"
-- "/doc/code_faq.html"
-- "/info/{user}"
-- "/info/{user}/project"
-- "/info/{user}/project/{project}"
+- `"/doc/"`
+- `"/doc/code_faq.html"`
+- `"/info/{user}"`
+- `"/info/{user}/project"`
+- `"/info/{user}/project/{project}"`
 
 In addition, a named regex pattern may be used:
 
-- "/regex/{name:[a-zA-Z]+}/test"
-- "/optional/{name:[a-zA-Z]+}/{word}/plus/"
-- "{uid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}"
+- `"/regex/{name:[a-zA-Z]+}/test"`
+- `"/optional/{name:[a-zA-Z]+}/{word}/plus/"`
+- `"{uid:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}}"`
 
 However, the following pattern _will not_ match:
 
-- "/repos/{owner}/{repo}/{archive}_format/{ref}"
+- `"/repos/{owner}/{repo}/{archive}_format/{ref}"`
 
 The reason is `{archive}_format` includes a _greedy_ match `{archive}` which will match everything _up to_ the following slash.
 
