@@ -23,6 +23,10 @@ class Route:
       - a request method, and
       - a handler dedicated to requests that match that path and method.
 
+    Example:
+
+        Route("/", handler=any_async_handler, methods=["GET", "POST"])
+
     Args:
         path (str): The http path to add to the router.
         handler (Callable): The async handler (any awaitable callable) to invoke on path match
@@ -56,7 +60,7 @@ class Route:
 
 class AsgiRouter:
     """
-    A AsgiRouter for a Tokamak Application is one or more `Route`s
+    An AsgiRouter for a Tokamak Application is one or more `Route`s
     with an optional configuration for matching trailing slashes or not.
 
     Example:

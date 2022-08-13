@@ -1,6 +1,5 @@
 from tokamak.web import response
 
-
 UnknownResourceResponse = response.Response(body=b"Unknown Resource", status_code=404)
 MethodNotAllowedResponse = response.Response(
     body=b"Method not allowed", status_code=405
