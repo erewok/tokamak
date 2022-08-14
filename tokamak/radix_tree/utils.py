@@ -64,7 +64,7 @@ class DynamicParseNode:
         if self._pattern is not None:
             return self._pattern
 
-        pat: str = "(?P<{name}>{regex})".format(name=self.name, regex=self.regex)
+        pat: str = r"(?P<{name}>{regex})".format(name=self.name, regex=self.regex)
         self._pattern = re.compile(pat)
         return self._pattern
 

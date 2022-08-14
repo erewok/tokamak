@@ -230,7 +230,6 @@ def main():
             globals=globals() | {"test_path": test_path},
             number=times,
         )
-        # tree_time = 1
         asgi_router_time = timeit(
             "asgi_router_lookup(test_path)",
             globals=globals() | {"test_path": test_path},
