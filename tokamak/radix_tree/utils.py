@@ -5,6 +5,8 @@ import re
 import typing
 from collections import deque
 
+# from tokamak_rs import first_nonequal_idx
+
 logger = logging.getLogger("tokamak")
 
 
