@@ -62,12 +62,18 @@ async def context_matcher(request: Request):
     body = message.get("body") or b"{}"
     payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
     request.app.db[request.path] = payload
-    await request.respond_with(Response(body=payload))
     await request.register_background(partial(bg_task, arg1="some kwarg"))
+    await request.respond_with(Response(body=payload))
+
+
+async def timeout_request_test(request: Request):
+    await trio.sleep(2)
+    await request.respond_with(Response(body=b"ok"))
 
 
 ROUTES = [
     Route("/", handler=index, methods=["GET"]),
+    Route("/timeout", handler=timeout_request_test, methods=["GET"]),
     *[
         Route(path, handler=context_matcher, methods=["GET", "POST"])
         for path in [
@@ -90,5 +96,10 @@ ROUTES = [
 if __name__ == "__main__":
     config = Config()
     config.bind = ["localhost:8000"]
-    app = Tokamak(router=AsgiRouter(routes=ROUTES), lifespan=lifespan)
+    app = Tokamak(
+        router=AsgiRouter(routes=ROUTES),
+        request_time_limit=1,
+        background_task_time_limit=3,
+        lifespan=lifespan,
+    )
     trio.run(serve, app, config)

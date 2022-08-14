@@ -6,6 +6,8 @@ SCOPE_METHOD_KEY = "method"
 
 @enum.unique
 class Method(enum.Enum):
+    """HTTP method strings"""
+
     CONNECT = "CONNECT"
     DELETE = "DELETE"
     HEAD = "HEAD"
@@ -18,6 +20,7 @@ class Method(enum.Enum):
 
     @classmethod
     def read(cls, value: str) -> Optional["Method"]:
+        """Reads a string value and returns a `Method`"""
         if hasattr(value, "upper"):
             value = value.upper()
         for elem in Method:

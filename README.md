@@ -1,18 +1,36 @@
 # Tokamak
 
-> In a star as in a fusion device, plasmas provide the environment in which light elements can fuse and yield energy.
+[![PyPI version fury.io](https://badge.fury.io/py/tokamak.svg)](https://pypi.python.org/pypi/tokamak/)
+[![Documentation Status](https://readthedocs.org/projects/tokamak/badge/?version=latest)](https://tokamak.readthedocs.io/en/latest/?badge=latest)
 
 Tokamak is a router based on Radix trees intended for ASGI Python applications.
 
-## Project Goals (Why Did You Build This?)
+[[Read the documentation](https://tokamak.readthedocs.io/en/latest/)]
 
-This project was created to fill a gap in the Python ecosystem. There is a variety of HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, no such library exists and most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
+## Primary Project Goals
+
+There are many HTTP routers based on radix trees available in other language communities, including Go, Javascript, Rust, and others. In Python, however, most open-source Python web frameworks instead utilize lists to store and look up HTTP routes.
 
 The primary goal for this project is to provide a radix-tree-based router for Python web frameworks (or any custom ASGI or WSGI implementation).
 
-**This library is currently considered to be _experimental_.**
+**This library is _experimental_. Use at your own risk.**
 
-As a secondary goal, a minimal web framework may in the future also be provided for building web applications in order to explore this space. However, more fully featured frameworks should be considered before this one. Producing a feature-complete web framework is _not_ a primary goal of this project.
+### Other Goals
+
+As a secondary goal, a minimal and highly experimental web framework is included an optional install in this library.
+
+The reasons for building and including this web framework are as follows:
+
+- It provides a convenient way to test the [`AsgiRouter`](/routing) class, and
+- It allows the authors of this library to explore experimental ASGI-framework features, including request-cancellation, background task time-limits, and background task cancellation.
+
+Developers should consider more fully-featured web frameworks _before_ this one and there are many to choose from:
+
+- [Django](https://www.djangoproject.com/)
+- [Flask](https://flask.palletsprojects.com/en/2.2.x/)
+- [Starlette](https://www.starlette.io/)
+- [Tornado](https://www.tornadoweb.org/en/stable/)
+- [Quart](https://pgjones.gitlab.io/quart/)
 
 ## Installation
 
@@ -197,7 +215,7 @@ OK
 
 ## Examples
 
-Runnable examples are provided in the [`./examples`](./examples/) directory. For instance, you can run an example application with `trio` and `hypercorn` like so:
+Runnable examples are provided in the [`examples` directory](https://github.com/erewok/tokamak/examples). For instance, you can run the experimental `tokamak` application with `trio` and `hypercorn` like so:
 
 ```sh
 $ poetry install -E "full"

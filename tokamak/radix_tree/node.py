@@ -115,7 +115,7 @@ class NodeChildSet(MutableSet):
         return len(self.static_nodes) + len(self.dynamic_nodes)
 
     def __repr__(self) -> str:
-        return "<tokamak.radix_tree.node.{classname}(.|S|. {static_nodes}) (.|D|. {dynamic_nodes})>".format(
+        return "<tokamak.radix_tree.node.{classname}({static_nodes}) ({dynamic_nodes})>>".format(
             classname=type(self).__name__,
             static_nodes=repr(self.static_nodes),
             dynamic_nodes=repr(self.dynamic_nodes),
@@ -136,6 +136,9 @@ class RadixNode(Generic[V]):
         self.children: NodeChildSet = children or NodeChildSet()
         self.leaf = leaf
         self.separator = separator
+
+    def __bool__(self) -> bool:
+        return True
 
     # needs structural typing?
     def __eq__(self, other_node) -> bool:  # type: ignore
@@ -276,9 +279,7 @@ class RadixNode(Generic[V]):
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
         """
-        matched_vars: Dict[str, str] = {}
-        if context is not None:
-            matched_vars = context
+        matched_vars: Dict[str, str] = context or {}
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
@@ -289,7 +290,7 @@ class RadixNode(Generic[V]):
                 matched_node, matched_vars = child.search_path(
                     path[index:], context=matched_vars
                 )
-                if matched_node:
+                if matched_node is not None:
                     return matched_node, matched_vars
 
         return None, matched_vars
@@ -318,6 +319,8 @@ class RadixNode(Generic[V]):
 
 
 class StaticNode(RadixNode):
+    __slots__ = ["path", "children", "leaf", "separator"]
+
     def __init__(
         self,
         path: str,
@@ -403,9 +406,7 @@ class StaticNode(RadixNode):
         Note: this method doesn't guarantee a full match. It means only that
         there are _some_ matching characters for this prefix.
         """
-        matched_vars: Dict[str, str] = {}
-        if context is not None:
-            matched_vars = context
+        matched_vars: Dict[str, str] = context or {}
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
@@ -416,7 +417,7 @@ class StaticNode(RadixNode):
                 matched_node, matched_vars = child.search_path(
                     path[index:], context=matched_vars
                 )
-                if matched_node:
+                if matched_node is not None:
                     return matched_node, matched_vars
 
         return None, matched_vars
@@ -476,9 +477,7 @@ class DynamicNode(RadixNode):
     def search_path(
         self, path: str, context: Optional[Dict[str, str]] = None
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
-        matched_vars: Dict[str, str] = {}
-        if context is not None:
-            matched_vars = context
+        matched_vars: Dict[str, str] = context or {}
 
         end_idx, matched = self.parser.match(path)
         if matched:
@@ -492,7 +491,7 @@ class DynamicNode(RadixNode):
                 matched_node, matched_vars = child.search_path(
                     path[end_idx:], context=matched_vars
                 )
-                if matched_node:
+                if matched_node is not None:
                     return matched_node, matched_vars
 
         return None, matched_vars

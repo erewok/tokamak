@@ -1,4 +1,5 @@
 import enum
+import functools
 import logging
 import re
 import typing
@@ -64,7 +65,7 @@ class DynamicParseNode:
         if self._pattern is not None:
             return self._pattern
 
-        pat: str = "(?P<{name}>{regex})".format(name=self.name, regex=self.regex)
+        pat: str = r"(?P<{name}>{regex})".format(name=self.name, regex=self.regex)
         self._pattern = re.compile(pat)
         return self._pattern
 
@@ -77,6 +78,7 @@ class DynamicParseNode:
         return -1, None
 
 
+@functools.lru_cache(maxsize=65536)
 def first_nonequal_idx(left: str, right: str) -> int:
     """
     Find first string index where left and right strings do not match

@@ -1,11 +1,9 @@
 """
    Property-based tests are isolated to here
 """
-import re
-
 from hypothesis import given, strategies
 
-from tokamak.radix_tree import node, tree, utils
+from tokamak.radix_tree import utils
 
 
 @given(strategies.text(), strategies.text())

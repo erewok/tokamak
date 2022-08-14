@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Tuple
 
 from tokamak import methods as tokmethods
 from tokamak.radix_tree import tree
@@ -22,6 +22,15 @@ class Route:
       - a path,
       - a request method, and
       - a handler dedicated to requests that match that path and method.
+
+    Example:
+
+        Route("/", handler=any_async_handler, methods=["GET", "POST"])
+
+    Args:
+        path (str): The http path to add to the router.
+        handler (Callable): The async handler (any awaitable callable) to invoke on path match
+        methods (List[str]): A list of accepted methods for this endpoint
     """
 
     def __init__(
@@ -51,34 +60,34 @@ class Route:
 
 class AsgiRouter:
     """
-    A AsgiRouter for a Tokamak Application is one or more `Route`s
+    An AsgiRouter for a Tokamak Application is one or more `Route`s
     with an optional configuration for matching trailing slashes or not.
 
     Example:
-        async def some_handler(request: Request):
-            headers: Iterable[Tuple[bytes, bytes]] = request.scope.get("headers", [])
-            qparams: Optional[bytes] = request.scope.get("query_string")
-            http_version: Optional[str] = request.scope.get("http_version")
-            method: Optional[str] = request.scope.get("method")
-            print(request.context, request.scope, headers, qparams, http_version, method)
+        We can define an endpoint handler to associate with any route:
 
-            message = await request.receive()
-            body = message.get("body") or b"{}"
-            payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
-            await request.respond_with(Response(body=payload))
-            await request.register_background(partial(bg_task, arg1="some kwarg"))
+            async def some_handler(scope, receive, send):
+                message = await receive()
+                body = message.get("body") or b"{}"
+                payload = json.dumps({"received": json.loads(body)}).encode("utf-8")
+                return Response(body=payload)
 
+        After that, we can include associate the handler with an endpoint:
 
-        AsgiRouter(routes=[
-            Route("/", handler=some_handler, methods=["GET"]),
-            Route("/files/{dir}/{filepath:*}", handler=some_handler, methods=["POST"]),
+            AsgiRouter(routes=[
+                Route("/", handler=some_handler, methods=["GET"]),
+                Route("/files/{dir}/{filepath:*}", handler=some_handler, methods=["POST"]),
 
-        ])
+            ])
 
     A dynamic route takes a name for the captured variable and a regex matcher,
     like so: `"/regex/{name:[a-zA-Z]+}/test"`
 
     The values matched in paths are always returned in the `context` as strings.
+
+    Args:
+        routes (Iterable[Route]): An optional iterable of routes to add.
+        trailing_slash_match (TrailingSlashMatch): Strictness property for trailing slashes
     """
 
     def __init__(
@@ -90,14 +99,37 @@ class AsgiRouter:
         if routes:
             self.build_route_tree(routes)
 
-    def build_route_tree(self, routes: Iterable[Route]):
+    def build_route_tree(self, routes: Iterable[Route]) -> None:
+        """
+        Builds the full routing tree.
+
+        Args:
+            routes (Iterable[Route]): An iterable of routes to add.
+        """
         for route in routes:
             self.add_route(route)
 
-    def add_route(self, route: Route):
+    def add_route(self, route: Route) -> None:
+        """
+        Adds a single route to the tree.
+
+        Args:
+            route (Route): A route to add.
+        """
         self.tree.insert(route.path, route)
 
-    def get_route(self, path):
+    def get_route(self, path: str) -> Tuple[Route, dict[str, str]]:
+        """
+        Search for a matching route by path.
+
+        Args:
+            path (str): The path to search for.
+
+        Returns:
+            Tuple[Router, context-dictionary]
+
+        Raises `UnknownEndpoint` if no path matched.
+        """
         route, context = self.tree.get_handler(path)
         if not route:
             raise UnknownEndpoint(f"Unknown path: {path}")

@@ -10,6 +10,10 @@ class TrailingSlashMatch(enum.Enum):
 
 
 class Tree:
+    """
+    Radix Tree class
+    """
+
     def __init__(
         self,
         separator: str = "/",
