@@ -137,6 +137,9 @@ class RadixNode(Generic[V]):
         self.leaf = leaf
         self.separator = separator
 
+    def __bool__(self) -> bool:
+        return True
+
     # needs structural typing?
     def __eq__(self, other_node) -> bool:  # type: ignore
         """
@@ -289,7 +292,7 @@ class RadixNode(Generic[V]):
                 matched_node, matched_vars = child.search_path(
                     path[index:], context=matched_vars
                 )
-                if matched_node:
+                if matched_node is not None:
                     return matched_node, matched_vars
 
         return None, matched_vars
@@ -416,7 +419,7 @@ class StaticNode(RadixNode):
                 matched_node, matched_vars = child.search_path(
                     path[index:], context=matched_vars
                 )
-                if matched_node:
+                if matched_node is not None:
                     return matched_node, matched_vars
 
         return None, matched_vars
@@ -492,7 +495,7 @@ class DynamicNode(RadixNode):
                 matched_node, matched_vars = child.search_path(
                     path[end_idx:], context=matched_vars
                 )
-                if matched_node:
+                if matched_node is not None:
                     return matched_node, matched_vars
 
         return None, matched_vars
