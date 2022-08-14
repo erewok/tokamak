@@ -3,9 +3,9 @@ This script is adapted almost entirely from
 https://gist.github.com/pgjones/c71d07a5a11bc96326a84fca9e24643b
 Authored by pgjones.
 """
+import statistics
 from operator import itemgetter
 from random import choice
-import statistics
 from string import Formatter
 from timeit import timeit
 
@@ -14,7 +14,6 @@ from werkzeug.routing import Map, Rule
 from werkzeug.routing.matcher import StateMachineMatcher
 
 from tokamak.router import AsgiRouter, Route
-
 
 PATHS = [
     "/",
@@ -211,7 +210,8 @@ def print_summary_timing_stats(timing_stats, name: str):
     print("Std Dev Improvements: ", f"{statistics.stdev(timing_number_only)}")
     print("Mean Path Length: ", f"{statistics.mean(test_path_lens)}")
     print(
-        "Mean Dynamic Segment Count: ", f"{statistics.mean(dynamic_segment_counts)}",
+        "Mean Dynamic Segment Count: ",
+        f"{statistics.mean(dynamic_segment_counts)}",
     )
     print(f"****** TIMING STATISTICS {name} END ******", end="\n\n")
 

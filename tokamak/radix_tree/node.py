@@ -248,7 +248,10 @@ class RadixNode(Generic[V]):
         new_path_root = path_to_tree(path, handler)
         return self.insert_node(new_path_root)
 
-    def prefix_search(self, prefix: str,) -> Iterator[PrefixSearchResult]:
+    def prefix_search(
+        self,
+        prefix: str,
+    ) -> Iterator[PrefixSearchResult]:
         """
         Searches a prefix and yields all nodes that match.
 
@@ -269,7 +272,9 @@ class RadixNode(Generic[V]):
         return None
 
     def search_path(
-        self, path: str, context: Optional[Dict[str, str]] = None,
+        self,
+        path: str,
+        context: Optional[Dict[str, str]] = None,
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
@@ -337,7 +342,10 @@ class StaticNode(RadixNode):
 
         children = copy.deepcopy(self.children)
         new_node = StaticNode(
-            path, children=children, leaf=self.leaf, separator=self.separator,
+            path,
+            children=children,
+            leaf=self.leaf,
+            separator=self.separator,
         )
         return new_node
 
@@ -352,7 +360,10 @@ class StaticNode(RadixNode):
             self.leaf = None
         return self
 
-    def prefix_search(self, prefix: str,) -> Iterator[PrefixSearchResult]:
+    def prefix_search(
+        self,
+        prefix: str,
+    ) -> Iterator[PrefixSearchResult]:
         """
         Searches a prefix and yields all nodes that match.
 
@@ -381,7 +392,9 @@ class StaticNode(RadixNode):
             yield PrefixSearchResult(self, index, unmatched, remaining)
 
     def search_path(
-        self, path: str, context: Optional[Dict[str, str]] = None,
+        self,
+        path: str,
+        context: Optional[Dict[str, str]] = None,
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
