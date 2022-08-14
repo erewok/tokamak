@@ -8,5 +8,5 @@ Module Organization:
 - Experimental Web Framework: [`tokamak.web`](/reference/web/__init__/)
 """
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 from .router import AsgiRouter, Route

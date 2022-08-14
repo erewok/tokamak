@@ -279,7 +279,7 @@ class RadixNode(Generic[V]):
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
         """
-        matched_vars: Dict[str, str] = {}
+        matched_vars: Dict[str, str] = context or {}
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
