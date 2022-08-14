@@ -3,8 +3,9 @@ This script is adapted almost entirely from
 https://gist.github.com/pgjones/c71d07a5a11bc96326a84fca9e24643b
 Authored by pgjones.
 """
-
+from operator import itemgetter
 from random import choice
+import statistics
 from string import Formatter
 from timeit import timeit
 
@@ -19,7 +20,7 @@ PATHS = [
     "/",
     "/events",
     "/repos/{owner}/{repo}/events",
-    "/repos/{owner}/{repo}/issues/events",
+    # "/repos/{owner}/{repo}/issues/events",
     "/networks/{owner}/{repo}/events",
     "/orgs/{org}/events",
     "/users/{username}/received_events",
@@ -101,8 +102,8 @@ PATHS = [
     "/repos/{owner}/{repo}/commits/{ref}/comments",
     "/repos/{owner}/{repo}/comments/{id}",
     "/repos/{owner}/{repo}/commits",
-    "/repos/{owner}/{repo}/commits/{sha}",
-    "/repos/{owner}/{repo}/compare/{base}...{head}",
+    # "/repos/{owner}/{repo}/commits/{sha}",
+    # "/repos/{owner}/{repo}/compare/{base}...{head}",
     # "/repos/{owner}/{repo}/compare/{user1}:{branch1}...{user2}:{branch2}",
     "/repos/{owner}/{repo}/readme",
     "/repos/{owner}/{repo}/contents/{path}",
@@ -147,7 +148,7 @@ PATHS = [
     "/users/{username}/following",
     "/user/following",
     "/user/following/{username}",
-    "/users/{username}/following/{target}_user",
+    # "/users/{username}/following/{target}_user",
     "/users/{username}/keys",
     "/user/keys",
     "/user/keys/{id}",
@@ -192,10 +193,35 @@ def asgi_router_lookup(test_path):
     tokamak_router.get_route(test_path)
 
 
+def print_summary_timing_stats(timing_stats, name: str):
+    print(f"****** TIMING STATISTICS {name} FASTER THAN BASELINE ******")
+    sorted_stats = sorted(timing_stats, key=itemgetter(0))
+    timing_number_only = [it[0] for it in timing_stats]
+    test_path_lens = [len(it[1]) for it in timing_stats]
+    dynamic_segment_counts = [it[1].count("{") for it in timing_stats]
+    print("Better Total", f"{len(timing_number_only)}")
+    print(
+        "Best improvement (min vs baseline)",
+        f"{min(timing_number_only)}",
+        "for path",
+        sorted_stats[0][1],
+    )
+    print("Mean Improvement: ", f"{statistics.mean(timing_number_only)}")
+    print("Median Improvement: ", f"{statistics.median(timing_number_only)}")
+    print("Std Dev Improvements: ", f"{statistics.stdev(timing_number_only)}")
+    print("Mean Path Length: ", f"{statistics.mean(test_path_lens)}")
+    print(
+        "Mean Dynamic Segment Count: ", f"{statistics.mean(dynamic_segment_counts)}",
+    )
+    print(f"****** TIMING STATISTICS {name} END ******", end="\n\n")
+
+
 def main():
     print(f"{'Path'.ljust(70)} | Ratio (percent difference from baseline)")
-    times = 10_000
-    for _ in range(20):
+    times = 20
+    tokamak_faster = []
+    werkzeug_faster = []
+    for _ in range(10000):
         path = choice(PATHS)
         names = [fn for _, fn, _, _ in Formatter().parse(path) if fn is not None]
         test_path = path.format(**{name: "abc" for name in names})
@@ -204,19 +230,24 @@ def main():
             globals=globals() | {"test_path": test_path},
             number=times,
         )
+        # tree_time = 1
         asgi_router_time = timeit(
             "asgi_router_lookup(test_path)",
             globals=globals() | {"test_path": test_path},
             number=times,
         )
         if asgi_router_time < tree_time:
+            tokamak_faster.append((asgi_router_time / tree_time, path))
             print(
                 f"Tokamak Tree is quicker: {path.ljust(70)} | {asgi_router_time / tree_time:.2f}"
             )
         else:
+            werkzeug_faster.append((tree_time / asgi_router_time, path))
             print(
                 f"Werkzeug Tree is quicker: {path.ljust(70)} | {tree_time / asgi_router_time:.2f}"
             )
+    print_summary_timing_stats(tokamak_faster, "TOKAMAK")
+    print_summary_timing_stats(werkzeug_faster, "WERKZEUG")
 
 
 if __name__ == "__main__":
