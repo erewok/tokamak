@@ -407,8 +407,6 @@ class StaticNode(RadixNode):
         there are _some_ matching characters for this prefix.
         """
         matched_vars: Dict[str, str] = context or {}
-        # if context is not None:
-        #     matched_vars = context
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):

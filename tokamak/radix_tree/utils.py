@@ -78,7 +78,7 @@ class DynamicParseNode:
         return -1, None
 
 
-@functools.cache
+@functools.lru_cache(maxsize=65536)
 def first_nonequal_idx(left: str, right: str) -> int:
     """
     Find first string index where left and right strings do not match
