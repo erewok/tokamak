@@ -280,8 +280,6 @@ class RadixNode(Generic[V]):
         Searches for a prefix and returns only a node that is a _complete_ match.
         """
         matched_vars: Dict[str, str] = {}
-        if context is not None:
-            matched_vars = context
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
@@ -321,6 +319,8 @@ class RadixNode(Generic[V]):
 
 
 class StaticNode(RadixNode):
+    __slots__ = ["path", "children", "leaf", "separator"]
+
     def __init__(
         self,
         path: str,
@@ -406,9 +406,9 @@ class StaticNode(RadixNode):
         Note: this method doesn't guarantee a full match. It means only that
         there are _some_ matching characters for this prefix.
         """
-        matched_vars: Dict[str, str] = {}
-        if context is not None:
-            matched_vars = context
+        matched_vars: Dict[str, str] = context or {}
+        # if context is not None:
+        #     matched_vars = context
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
@@ -479,9 +479,7 @@ class DynamicNode(RadixNode):
     def search_path(
         self, path: str, context: Optional[Dict[str, str]] = None
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
-        matched_vars: Dict[str, str] = {}
-        if context is not None:
-            matched_vars = context
+        matched_vars: Dict[str, str] = context or {}
 
         end_idx, matched = self.parser.match(path)
         if matched:

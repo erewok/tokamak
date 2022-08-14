@@ -1,4 +1,5 @@
 import enum
+import functools
 import logging
 import re
 import typing
@@ -77,6 +78,7 @@ class DynamicParseNode:
         return -1, None
 
 
+@functools.cache
 def first_nonequal_idx(left: str, right: str) -> int:
     """
     Find first string index where left and right strings do not match
