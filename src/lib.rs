@@ -1,47 +1,35 @@
+use std::cmp::min;
+use std::iter::zip;
+
 use pyo3::prelude::*;
-use rand::Rng;
-use std::cmp::Ordering;
-use std::io;
 
+
+/// Find the first non-matching index in two strings
 #[pyfunction]
-fn guess_the_number() {
-    println!("Guess the number!");
+fn first_nonequal_idx(left: &str, right: &str) -> usize {
+    let mut idx: usize = 0;
+    let mut chars_iter = zip(left.chars(), right.chars());
 
-    let secret_number = rand::thread_rng().gen_range(1..101);
+    let max_search_len = min(left.len(), right.len());
+    while idx < max_search_len {
+        match chars_iter.next() {
+            None => break,
+            Some((a, b)) => {
+                if a == b {
+                    idx += 1;
+                } else {
+                    break;
+                }
 
-    loop {
-        println!("Please input your guess.");
-
-        let mut guess = String::new();
-
-        io::stdin()
-            .read_line(&mut guess)
-            .expect("Failed to read line");
-
-        let guess: u32 = match guess.trim().parse() {
-            Ok(num) => num,
-            Err(_) => continue,
-        };
-
-        println!("You guessed: {}", guess);
-
-        match guess.cmp(&secret_number) {
-            Ordering::Less => println!("Too small!"),
-            Ordering::Greater => println!("Too big!"),
-            Ordering::Equal => {
-                println!("You win!");
-                break;
             }
         }
     }
+    idx
 }
 
-/// A Python module implemented in Rust. The name of this function must match
-/// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
-/// import the module.
+/// A Python module implemented in Rust.
 #[pymodule]
 fn tokamak_rs(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(guess_the_number, m)?)?;
-
+    m.add_function(wrap_pyfunction!(first_nonequal_idx, m)?)?;
     Ok(())
 }

@@ -15,6 +15,7 @@ from typing import (
 )
 
 from . import utils
+from tokamak_rs import first_nonequal_idx
 
 LAST_CHILD = "└──"
 MIDDLE_CHILD = "├──"
@@ -147,7 +148,7 @@ class RadixNode(Generic[V]):
         into child nodes, so the sub-trees may be different for nodes that are
         equal.
         """
-        index = utils.first_nonequal_idx(self.path, other_node.path)
+        index = first_nonequal_idx(self.path, other_node.path)
         if index == len(self.path) == len(other_node.path):
             return True
         return False
@@ -281,7 +282,7 @@ class RadixNode(Generic[V]):
         """
         matched_vars: Dict[str, str] = context or {}
 
-        index = utils.first_nonequal_idx(path, self.path)
+        index = first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
             return self, matched_vars
 
@@ -374,7 +375,7 @@ class StaticNode(RadixNode):
 
         Check the PrefixSearchResult object for unmatched characters.
         """
-        index = utils.first_nonequal_idx(prefix, self.path)
+        index = first_nonequal_idx(prefix, self.path)
         if index == len(self.path) == len(prefix):
             # full match; prefix fully consumed
             yield PrefixSearchResult(self, index, "", "")
@@ -408,7 +409,7 @@ class StaticNode(RadixNode):
         """
         matched_vars: Dict[str, str] = context or {}
 
-        index = utils.first_nonequal_idx(path, self.path)
+        index = first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
             return self, matched_vars
 
@@ -459,7 +460,7 @@ class DynamicNode(RadixNode):
         This is different from searching an input string using the regex. We look for a completely
         matching dynamic path.
         """
-        index = utils.first_nonequal_idx(prefix, self.path)
+        index = first_nonequal_idx(prefix, self.path)
         if index == len(self.path) == len(prefix):
             # full match; prefix fully consumed
             yield PrefixSearchResult(self, index, "", "")
