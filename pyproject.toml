@@ -5,16 +5,23 @@ description = "HTTP Router based on radix trees"
 readme = "./README.md"
 authors = ["Erik Aker <eraker@gmail.com>"]
 license = "MPL-2.0"
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 homepage = "https://github.com/erewok/tokamak"
 repository = "https://github.com/erewok/tokamak"
 documentation = "https://tokamak.readthedocs.io/en/latest/"
-
-keywords = ["web"]
-
-classifiers = [
-    "Topic :: Software Development :: Build Tools",
-    "Topic :: Software Development :: Libraries :: Python Modules"
-]
 
 [tool.poetry.dependencies]
 python = "^3.9"
