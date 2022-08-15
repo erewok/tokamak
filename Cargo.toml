@@ -16,6 +16,7 @@ default = ["extension-module"]
 [dependencies]
 rand = "0.8.5"
 pyo3 = { version = "0.16.5", features = ["extension-module"] }
+nom = "7.1.1"
 
 [profile.release]
 lto = "thin"

@@ -10,5 +10,3 @@ Module Organization:
 
 __version__ = "0.5.3"
 from .router import AsgiRouter, Route
-
-import tokamak_rs
