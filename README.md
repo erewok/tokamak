@@ -3,7 +3,7 @@
 [![PyPI version fury.io](https://badge.fury.io/py/tokamak.svg)](https://pypi.python.org/pypi/tokamak/)
 [![Documentation Status](https://readthedocs.org/projects/tokamak/badge/?version=latest)](https://tokamak.readthedocs.io/en/latest/?badge=latest)
 
-Tokamak is a router based on Radix trees intended for ASGI Python applications.
+Tokamak is a pure-Python router based on Radix trees intended for ASGI Python applications.
 
 [[Read the documentation](https://tokamak.readthedocs.io/en/latest/)]
 
@@ -19,7 +19,7 @@ The primary goal for this project is to provide a radix-tree-based router for Py
 
 As a secondary goal, a minimal and highly experimental web framework is included an optional install in this library.
 
-The reasons for building and including this web framework are as follows:
+The reasons for including this web framework are as follows:
 
 - It provides a convenient way to test the [`AsgiRouter`](/routing) class, and
 - It allows the authors of this library to explore experimental ASGI-framework features, including request-cancellation, background task time-limits, and background task cancellation.
@@ -28,9 +28,9 @@ Developers should consider more fully-featured web frameworks _before_ this one 
 
 - [Django](https://www.djangoproject.com/)
 - [Flask](https://flask.palletsprojects.com/en/2.2.x/)
+- [Quart](https://pgjones.gitlab.io/quart/)
 - [Starlette](https://www.starlette.io/)
 - [Tornado](https://www.tornadoweb.org/en/stable/)
-- [Quart](https://pgjones.gitlab.io/quart/)
 
 ## Installation
 
@@ -40,7 +40,9 @@ You can install `tokamak` with:
 pip install tokamak
 ```
 
-By default tokamak has no dependencies. If you would like to try out the experimental web framework, you can install with optional extras `web`, which will include `trio`:
+By default tokamak has no dependencies.
+
+If you would like to try out the experimental web framework, you can install with optional extras `web`, which will include `trio`:
 
 ```sh
 $ pip install "tokamak[web]"
@@ -185,7 +187,7 @@ This example relies on the following dependencies:
 - hypercorn
 - trio
 
-If we have these dependencies in our Python environment, we can this simple script:
+If we have these dependencies in our Python environment, we can run this simple script:
 
 ```sh
 $ poetry run python examples/asgi_minimal.py
