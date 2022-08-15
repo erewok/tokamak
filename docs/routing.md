@@ -1,6 +1,6 @@
 # Routing with Radix Trees
 
-This project includes an [`AsgiRouter`](/reference/router/#tokamak.router.AsgiRouter) class which can be used to construct a routing tree.
+This project includes an [`AsgiRouter`](../reference/router/#tokamak.router.AsgiRouter) class which can be used to construct a routing tree.
 
 A routing tree can be constructed of a combination static paths and regex patterns.
 

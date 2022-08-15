@@ -8,9 +8,9 @@ extra must be included, e.g.:
 
 Module Organization:
 
-- Tokamak Applications: [`tokamak.web.app`](/reference/web/app/)
-- Request Class: [`tokamak.web.request`](/reference/web/request/)
-- Response Class: [`tokamak.web.response`](/reference/web/response/)
+- Tokamak Applications: [`tokamak.web.app`](../app/)
+- Request Class: [`tokamak.web.request`](../request/)
+- Response Class: [`tokamak.web.response`](../response/)
 """
 from .app import Tokamak
 from .request import Request
