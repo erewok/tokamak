@@ -23,6 +23,7 @@ V = TypeVar("V")  # handler value
 
 
 class PrefixSearchResult:
+    """A class for packaging up results for comparing strings against nodes"""
     __slots__ = [
         "node",
         "index",
@@ -44,6 +45,7 @@ class PrefixSearchResult:
 
     @property
     def complete_match(self) -> bool:
+        """If this match is 'complete' then both sides will be empty afterward"""
         return len(self.left_side_remaining) == 0 == len(self.right_side_remaining)
 
     def __str__(self) -> str:
@@ -56,6 +58,7 @@ class PrefixSearchResult:
 
 
 class LeafNode(Generic[V]):
+    """The LeafNode represents a pointer to a handler."""
     __slots__ = ["handler"]
 
     def __init__(self, handler: V):
@@ -64,6 +67,10 @@ class LeafNode(Generic[V]):
 
 class NodeChildSet(MutableSet):
     """
+    The children of a node are two Sets:
+    - DynamicNodes
+    - StaticNodes
+
     The goal of this data structure is to make it easy
     to iterate StaticNodes _before_ DynamicNodes.
 
@@ -86,9 +93,13 @@ class NodeChildSet(MutableSet):
 
     def add(self, node: "RadixNode") -> None:
         """
-        Put item into appropriate set. If key already
+        Puts item into appropriate set. If key already
         exists in the _other_ set, we delete it from there
         afterward.
+
+        Args:
+
+            node: RadixNode to add as a child
         """
         if isinstance(node, DynamicNode):
             self.dynamic_nodes.add(node)
@@ -100,18 +111,22 @@ class NodeChildSet(MutableSet):
                 self.dynamic_nodes.discard(node)
 
     def discard(self, node: "RadixNode") -> None:
+        """Remove a child node"""
         if node in self.dynamic_nodes:
             return self.dynamic_nodes.discard(node)
         return self.static_nodes.discard(node)
 
     # We are interested in specializing this data structure: only RadixNode things are allowed
     def __contains__(self, node: "RadixNode") -> bool:  # type: ignore
+        """Check if a node exists in children"""
         return node in self.dynamic_nodes or node in self.static_nodes
 
     def __iter__(self) -> Iterator["RadixNode"]:
+        """Iterate child nodes (static first!)"""
         return chain(self.static_nodes, self.dynamic_nodes)
 
     def __len__(self) -> int:
+        """The length of all children is the sum of the lengths of dynamic and static nodes"""
         return len(self.static_nodes) + len(self.dynamic_nodes)
 
     def __repr__(self) -> str:
@@ -123,6 +138,7 @@ class NodeChildSet(MutableSet):
 
 
 class RadixNode(Generic[V]):
+    """A base class for a node in our radix tree."""
     __slots__ = ["path", "children", "leaf", "separator"]
 
     def __init__(
@@ -138,6 +154,12 @@ class RadixNode(Generic[V]):
         self.separator = separator
 
     def __bool__(self) -> bool:
+        """
+        A RadixNode is always truthy.
+
+        Without this method `if node` will call __len__ which recursively
+        iterates the entire tree!
+        """
         return True
 
     # needs structural typing?
@@ -267,6 +289,11 @@ class RadixNode(Generic[V]):
         yield PrefixSearchResult(self, len(self.path), "", "")
 
     def prettyprint(self, mult: int = 1, indent: str = "") -> None:  # pragma: no cover
+        """
+        Pretty printing a tree is a useful visualization tool.
+
+        Note, this calls `self.tree_as_str` to get a string representation of the tree.
+        """
         result = self.tree_as_str(mult=mult, indent=indent)
         print(result)
         return None
@@ -298,6 +325,11 @@ class RadixNode(Generic[V]):
     def tree_as_str(
         self, mult: int = 1, indent: str = "", is_leaf: bool = False
     ) -> str:
+        """
+        Representing this tree as a string is a useful visualization tool.
+
+        This can help with debugging and documentation.
+        """
         visual = "{indent}{branch} {path}\n"
         path = self.path
         if not path:
@@ -319,6 +351,7 @@ class RadixNode(Generic[V]):
 
 
 class StaticNode(RadixNode):
+    """A StaticNode has _no_ dynamic elements."""
     __slots__ = ["path", "children", "leaf", "separator"]
 
     def __init__(
@@ -424,6 +457,11 @@ class StaticNode(RadixNode):
 
 
 class DynamicNode(RadixNode):
+    """
+    A DynamicNode is a single elements.
+
+    This class wraps a named-regex pattern which is later used to match strings.
+    """
     __slots__ = ["parser", "children", "leaf", "separator"]
 
     def __init__(
@@ -477,6 +515,10 @@ class DynamicNode(RadixNode):
     def search_path(
         self, path: str, context: Optional[Dict[str, str]] = None
     ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
+        """
+        This method runs a regex `match` function and
+        updates the `context` dict with any matched values.
+        """
         matched_vars: Dict[str, str] = context or {}
 
         end_idx, matched = self.parser.match(path)
@@ -520,7 +562,14 @@ def path_to_tree(path: str, handler: Any) -> RadixNode:
     Create a _new_ tree out of this path. Because this is a new node, it
     should contain only simple `parent.children = {child-node}` relationships.
 
-    Returns root node.
+    Args:
+
+        path: The path to construct a tree out of
+        handler: Any associated function that we want this path to point to.
+
+    Returns:
+
+        RadixNode: the root node of the tree
     """
     path_nodes = list(enumerate(map(node_map, utils.parse_dynamic(path))))
     if len(path_nodes) == 0:
@@ -541,6 +590,7 @@ def path_to_tree(path: str, handler: Any) -> RadixNode:
 
 
 def merge_nodes(into: RadixNode, merge_node: RadixNode) -> RadixNode:
+    """This operation is useful when we discover overlapping paths in our radix tree"""
     if (
         into.leaf is not None
         and merge_node.leaf is not None

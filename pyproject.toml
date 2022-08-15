@@ -1,10 +1,20 @@
 [tool.poetry]
 name = "tokamak"
-version = "0.5.3"
+version = "0.5.4"
 description = "HTTP Router based on radix trees"
 readme = "./README.md"
 authors = ["Erik Aker <eraker@gmail.com>"]
 license = "MPL-2.0"
+homepage = "https://github.com/erewok/tokamak"
+repository = "https://github.com/erewok/tokamak"
+documentation = "https://tokamak.readthedocs.io/en/latest/"
+
+keywords = ["web"]
+
+classifiers = [
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
