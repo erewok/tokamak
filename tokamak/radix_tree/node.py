@@ -24,6 +24,7 @@ V = TypeVar("V")  # handler value
 
 class PrefixSearchResult:
     """A class for packaging up results for comparing strings against nodes"""
+
     __slots__ = [
         "node",
         "index",
@@ -59,6 +60,7 @@ class PrefixSearchResult:
 
 class LeafNode(Generic[V]):
     """The LeafNode represents a pointer to a handler."""
+
     __slots__ = ["handler"]
 
     def __init__(self, handler: V):
@@ -139,6 +141,7 @@ class NodeChildSet(MutableSet):
 
 class RadixNode(Generic[V]):
     """A base class for a node in our radix tree."""
+
     __slots__ = ["path", "children", "leaf", "separator"]
 
     def __init__(
@@ -352,6 +355,7 @@ class RadixNode(Generic[V]):
 
 class StaticNode(RadixNode):
     """A StaticNode has _no_ dynamic elements."""
+
     __slots__ = ["path", "children", "leaf", "separator"]
 
     def __init__(
@@ -462,6 +466,7 @@ class DynamicNode(RadixNode):
 
     This class wraps a named-regex pattern which is later used to match strings.
     """
+
     __slots__ = ["parser", "children", "leaf", "separator"]
 
     def __init__(
