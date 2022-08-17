@@ -1,0 +1,29 @@
+name: Release
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: "Publish release"
+    runs-on: "ubuntu-latest"
+
+    environment:
+      name: deploy
+
+    steps:
+      - uses: "actions/checkout@v3"
+      - uses: "actions/setup-python@v4"
+        with:
+          python-version: 3.9
+      - name: "Install poetry"
+        run: "pip install poetry"
+      - name: "Configure poetry"
+        run: "poetry config virtualenvs.create false --local"
+      - name: "Run poetry update"
+        run: "poetry build"
+      - name: "Publish to PyPI & deploy docs"
+        run: "scripts/release.sh"
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

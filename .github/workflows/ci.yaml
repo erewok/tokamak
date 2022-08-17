@@ -1,0 +1,35 @@
+name: Tests
+on:
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '*.rst'
+jobs:
+  tests:
+    name: "Python ${{ matrix.python-version }}"
+    runs-on: "ubuntu-latest"
+    env:
+      CODECOV_UPLOAD: false
+      POETRY_VERSION: "1.1.14"
+      PYPI_PUBLISH: false
+
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+        python-version: ["3.9", "3.10"]
+    steps:
+      - uses: "actions/checkout@v3"
+      - uses: "actions/setup-python@v4"
+        with:
+          python-version: "${{ matrix.python-version }}"
+      - name: "Install poetry"
+        run: "pip install poetry"
+      - name: "Configure poetry"
+        run: "poetry config virtualenvs.create false --local"
+      - name: "Run poetry update"
+        run: "poetry update"
+      - name: "Run tests"
+        run: "scripts/run_tests.sh"
