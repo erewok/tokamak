@@ -34,7 +34,5 @@ jobs:
       - name: "Run tests"
         run: "scripts/run_tests.sh"
       # DELETE ME
-      - name: "Run poetry build"
-        run: "poetry build"
-      - name: "Run poetry build"
-        run: "poetry run twine check dist/*"
+      - name: "Twinning"
+        run: "pip install twine && twine check dist/*"
