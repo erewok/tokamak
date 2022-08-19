@@ -9,7 +9,7 @@ jobs:
     runs-on: "ubuntu-latest"
 
     environment:
-      name: deploy
+      name: PyPi
 
     steps:
       - uses: "actions/checkout@v3"
@@ -24,8 +24,8 @@ jobs:
         run: "poetry update"
       - name: "Run poetry build"
         run: "poetry build"
-      - name: "Publish to PyPI & deploy docs"
-        run: "scripts/release.sh"
+      - name: "Publish to PyPI"
+        run: "pip install twine && scripts/release.sh"
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

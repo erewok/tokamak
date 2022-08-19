@@ -33,3 +33,8 @@ jobs:
         run: "poetry update"
       - name: "Run tests"
         run: "scripts/run_tests.sh"
+      # DELETE ME
+      - name: "Run poetry build"
+        run: "poetry build"
+      - name: "Run poetry build"
+        run: "poetry run twine check dist/*"
