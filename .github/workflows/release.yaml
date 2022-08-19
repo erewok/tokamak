@@ -9,7 +9,7 @@ jobs:
     runs-on: "ubuntu-latest"
 
     environment:
-      name: deploy
+      name: PyPi
 
     steps:
       - uses: "actions/checkout@v3"
@@ -22,9 +22,7 @@ jobs:
         run: "poetry config virtualenvs.create false --local"
       - name: "Run poetry update"
         run: "poetry update"
-      - name: "Run poetry build"
-        run: "poetry build"
-      - name: "Publish to PyPI & deploy docs"
+      - name: "Publish to PyPI"
         run: "scripts/release.sh"
         env:
           TWINE_USERNAME: __token__
