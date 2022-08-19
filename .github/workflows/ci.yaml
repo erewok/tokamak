@@ -33,6 +33,3 @@ jobs:
         run: "poetry update"
       - name: "Run tests"
         run: "scripts/run_tests.sh"
-      # DELETE ME
-      - name: "Twinning"
-        run: "pip install twine && twine check dist/*"

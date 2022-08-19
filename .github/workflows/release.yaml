@@ -22,10 +22,8 @@ jobs:
         run: "poetry config virtualenvs.create false --local"
       - name: "Run poetry update"
         run: "poetry update"
-      - name: "Run poetry build"
-        run: "poetry build"
       - name: "Publish to PyPI"
-        run: "pip install twine && scripts/release.sh"
+        run: "scripts/release.sh"
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}

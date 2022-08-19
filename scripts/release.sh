@@ -1,5 +1,5 @@
 #!/bin/sh -e
 
 poetry build
-twine check dist/*
-twine upload dist/*
+python -m twine check dist/*
+python -m twine upload dist/*
