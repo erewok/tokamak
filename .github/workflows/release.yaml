@@ -24,10 +24,5 @@ jobs:
       run: curl -LsSf https://astral.sh/uv/install.sh | sh
     - name: Install pypa/build
       run: just build
-    - name: Store the distribution packages
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
