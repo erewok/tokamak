@@ -1,6 +1,5 @@
 import pytest
 from hypothesis import given, strategies
-
 from tokamak import methods
 
 

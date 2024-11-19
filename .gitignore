@@ -17,3 +17,5 @@ htmlcov/
 .hypothesis/*
 # except for the examples directory
 !.hypothesis/examples/
+coverage.xml
+coverage/

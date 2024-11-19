@@ -29,7 +29,7 @@ class DynamicParseNode:
     VALID_NAME_REGEX = re.compile(r"([a-zA-Z_][a-zA-Z0-9_]*)")
     __slots__ = ["raw", "name", "regex", "_pattern"]
 
-    def __init__(self, raw: str, name: str, regex: typing.Optional[str] = None):
+    def __init__(self, raw: str, name: str, regex: str | None = None):
         if any(
             (
                 len(raw) == 0,
@@ -45,7 +45,7 @@ class DynamicParseNode:
             self.regex: str = self.MATCH_UP_TO_SLASH
         else:
             self.regex = regex
-        self._pattern: typing.Optional[re.Pattern] = None
+        self._pattern: re.Pattern | None = None
 
         match = self.VALID_NAME_REGEX.match(self.name)
         if not self.name or not match:
@@ -65,13 +65,13 @@ class DynamicParseNode:
         if self._pattern is not None:
             return self._pattern
 
-        pat: str = r"(?P<{name}>{regex})".format(name=self.name, regex=self.regex)
+        pat: str = rf"(?P<{self.name}>{self.regex})"
         self._pattern = re.compile(pat)
         return self._pattern
 
     def match(
         self, query: str
-    ) -> typing.Tuple[int, typing.Optional[typing.Dict[str, str]]]:
+    ) -> tuple[int, dict[str, str] | None]:
         match = self.pattern.match(query)
         if match:
             return match.end(), match.groupdict()
@@ -125,11 +125,11 @@ def parse_dynamic(path: str) -> typing.Iterator[typing.Union[str, "DynamicParseN
         '/bla/bla/',
         <tokamak.types.DynamicParseNode at 0x7f82e1b3a220>]
     """
-    stack: typing.Deque[int] = deque()
-    regex_stack: typing.Deque[int] = deque()
+    stack: deque[int] = deque()
+    regex_stack: deque[int] = deque()
     inside_dyn = False
     has_regex = False
-    static: typing.List[str] = []
+    static: list[str] = []
     last_dyn_node_idx = None
 
     # parse each char for `{` followed by `:` followed by `}`

@@ -1,7 +1,7 @@
 from tokamak.web import response
 
 UnknownResourceResponse = response.Response(body=b"Unknown Resource", status_code=404)
-MethodNotAllowedResponse = response.Response(
+MethodNotAllowedErrorResponse = response.Response(
     body=b"Method not allowed", status_code=405
 )
 RequestCancelledResponse = response.Response(
@@ -17,4 +17,4 @@ async def default_cancelled_request_handler(request):
 
 async def method_not_allowed(request):
     """Default handler for method-not-allowed"""
-    await request.respond_with(MethodNotAllowedResponse)
+    await request.respond_with(MethodNotAllowedErrorResponse)

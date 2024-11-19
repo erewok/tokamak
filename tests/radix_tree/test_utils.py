@@ -1,5 +1,4 @@
 import pytest
-
 from tokamak.radix_tree import utils
 
 

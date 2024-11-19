@@ -2,7 +2,6 @@
    Property-based tests are isolated to here
 """
 from hypothesis import given, strategies
-
 from tokamak.radix_tree import utils
 
 

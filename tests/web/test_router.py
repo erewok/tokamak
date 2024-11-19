@@ -1,9 +1,7 @@
-import re
 from string import Formatter
 
 import pytest
 from hypothesis import given, strategies
-
 from tokamak.router import AsgiRouter, Route
 
 LARGE_PATH_LIST = [

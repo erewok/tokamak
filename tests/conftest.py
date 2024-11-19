@@ -1,9 +1,5 @@
-import re
-import typing
 
 import pytest
-from hypothesis import strategies
-
 from tokamak.radix_tree import Tree
 
 TEST_ROUTES = [
@@ -48,12 +44,12 @@ TEST_ROUTES = [
 
 
 @pytest.fixture(scope="module")
-def test_routes() -> typing.List[str]:
+def test_routes() -> list[str]:
     return TEST_ROUTES
 
 
 @pytest.fixture(scope="module")
-def large_tree(test_routes: typing.List[str]) -> Tree:
+def large_tree(test_routes: list[str]) -> Tree:
     tree = Tree()
     for path in test_routes:
         tree.insert(path, path)

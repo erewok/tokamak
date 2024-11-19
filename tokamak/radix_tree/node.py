@@ -1,18 +1,7 @@
 import copy
-from collections.abc import MutableSet
+from collections.abc import Iterable, Iterator, MutableSet
 from itertools import chain
-from typing import (
-    Any,
-    Dict,
-    Generic,
-    Iterable,
-    Iterator,
-    Optional,
-    Set,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import Any, Generic, Optional, TypeVar
 
 from . import utils
 
@@ -50,11 +39,10 @@ class PrefixSearchResult:
         return len(self.left_side_remaining) == 0 == len(self.right_side_remaining)
 
     def __str__(self) -> str:
-        return "Path: {} Index: {} [Left: {} <//> Right: {}]".format(
-            self.node.path,
-            self.index,
-            self.left_side_remaining,
-            self.right_side_remaining,
+        return (
+            f"Path: {self.node.path} Index: {self.index} "
+            f"[Left: {self.left_side_remaining} <//> "
+            f"Right: {self.right_side_remaining}]"
         )
 
 
@@ -82,9 +70,9 @@ class NodeChildSet(MutableSet):
 
     __slots__ = ["static_nodes", "dynamic_nodes"]
 
-    def __init__(self, data: Optional[Iterable["RadixNode"]] = None):
-        self.static_nodes: Set["RadixNode"] = set()
-        self.dynamic_nodes: Set["RadixNode"] = set()
+    def __init__(self, data: Iterable["RadixNode"] | None = None):
+        self.static_nodes: set[RadixNode] = set()
+        self.dynamic_nodes: set[RadixNode] = set()
 
         if data is not None:
             for node in data:
@@ -92,6 +80,9 @@ class NodeChildSet(MutableSet):
                     self.dynamic_nodes.add(node)
                 else:
                     self.static_nodes.add(node)
+
+    def __bool__(self) -> bool:
+        return bool(self.static_nodes) or bool(self.dynamic_nodes)
 
     def add(self, node: "RadixNode") -> None:
         """
@@ -132,10 +123,9 @@ class NodeChildSet(MutableSet):
         return len(self.static_nodes) + len(self.dynamic_nodes)
 
     def __repr__(self) -> str:
-        return "<tokamak.radix_tree.node.{classname}({static_nodes}) ({dynamic_nodes})>>".format(
-            classname=type(self).__name__,
-            static_nodes=repr(self.static_nodes),
-            dynamic_nodes=repr(self.dynamic_nodes),
+        return (
+            f"<tokamak.radix_tree.node.{type(self).__name__}"
+            f"({repr(self.static_nodes)}) ({repr(self.dynamic_nodes)})>>"
         )
 
 
@@ -147,7 +137,7 @@ class RadixNode(Generic[V]):
     def __init__(
         self,
         path: str,
-        children: Optional[NodeChildSet] = None,
+        children: NodeChildSet | None = None,
         leaf: Optional["LeafNode[V]"] = None,
         separator: str = "/",
     ):
@@ -193,15 +183,13 @@ class RadixNode(Generic[V]):
         )
 
     def __repr__(self) -> str:
-        return "<tokamak.radix_tree.node.{classname} '{path}' at {loc}>".format(
-            classname=type(self).__name__, path=self.path, loc=hex(id(self))
-        )
+        return f"<tokamak.radix_tree.node.{type(self).__name__} '{self.path}' at {hex(id(self))}>"
 
     def __len__(self) -> int:
         """Returns count of all nodes in the tree"""
         return 1 + sum(len(ch) for ch in self.children)
 
-    def clone(self, path: Optional[str] = None) -> "RadixNode":  # type: ignore # pragma: no cover
+    def clone(self, path: str | None = None) -> "RadixNode":  # type: ignore # pragma: no cover
         raise NotImplementedError("`clone` must be implemented in the child classes")
 
     def split(self, index: int) -> "RadixNode":  # type: ignore # pragma: no cover
@@ -252,7 +240,7 @@ class RadixNode(Generic[V]):
         try:
             psr = next(self.prefix_search(node.path))
         except StopIteration:
-            raise ValueError("Failed inserting node with path: {}".format(node.path))
+            raise ValueError(f"Failed inserting node with path: {node.path}") from None
 
         if isinstance(node, DynamicNode):
             result = self.insert_dynamic_node(node, psr)
@@ -263,7 +251,7 @@ class RadixNode(Generic[V]):
 
         return result
 
-    def insert(self, path: str, handler: Optional[V] = None) -> Optional["RadixNode"]:
+    def insert(self, path: str, handler: V | None = None) -> Optional["RadixNode"]:
         """
         Inserts a path somewhere in this tree as a new subtree
 
@@ -304,12 +292,12 @@ class RadixNode(Generic[V]):
     def search_path(
         self,
         path: str,
-        context: Optional[Dict[str, str]] = None,
-    ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
+        context: dict[str, str] | None = None,
+    ) -> tuple[Optional["RadixNode"], dict[str, str]]:
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
         """
-        matched_vars: Dict[str, str] = context or {}
+        matched_vars: dict[str, str] = context or {}
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
@@ -361,8 +349,8 @@ class StaticNode(RadixNode):
     def __init__(
         self,
         path: str,
-        children: Optional[NodeChildSet] = None,
-        leaf: Optional[LeafNode] = None,
+        children: NodeChildSet | None = None,
+        leaf: LeafNode | None = None,
         separator: str = "/",
     ):
         if not path:
@@ -373,7 +361,7 @@ class StaticNode(RadixNode):
         self.leaf = leaf
         self.separator = separator
 
-    def clone(self, path: Optional[str] = None) -> "RadixNode":
+    def clone(self, path: str | None = None) -> "RadixNode":
         if path is None:
             path = self.path
 
@@ -431,8 +419,8 @@ class StaticNode(RadixNode):
     def search_path(
         self,
         path: str,
-        context: Optional[Dict[str, str]] = None,
-    ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
+        context: dict[str, str] | None = None,
+    ) -> tuple[Optional["RadixNode"], dict[str, str]]:
         """
         Searches for a prefix and returns only a node that is a _complete_ match.
 
@@ -443,7 +431,7 @@ class StaticNode(RadixNode):
         Note: this method doesn't guarantee a full match. It means only that
         there are _some_ matching characters for this prefix.
         """
-        matched_vars: Dict[str, str] = context or {}
+        matched_vars: dict[str, str] = context or {}
 
         index = utils.first_nonequal_idx(path, self.path)
         if index == len(self.path) == len(path):
@@ -472,8 +460,8 @@ class DynamicNode(RadixNode):
     def __init__(
         self,
         parser: utils.DynamicParseNode,
-        children: Optional[NodeChildSet] = None,
-        leaf: Optional[LeafNode] = None,
+        children: NodeChildSet | None = None,
+        leaf: LeafNode | None = None,
         separator: str = "/",
     ):
         self.path = parser.raw
@@ -518,13 +506,13 @@ class DynamicNode(RadixNode):
             yield PrefixSearchResult(self, index, unmatched, remaining)
 
     def search_path(
-        self, path: str, context: Optional[Dict[str, str]] = None
-    ) -> Tuple[Optional["RadixNode"], Dict[str, str]]:
+        self, path: str, context: dict[str, str] | None = None
+    ) -> tuple[Optional["RadixNode"], dict[str, str]]:
         """
         This method runs a regex `match` function and
         updates the `context` dict with any matched values.
         """
-        matched_vars: Dict[str, str] = context or {}
+        matched_vars: dict[str, str] = context or {}
 
         end_idx, matched = self.parser.match(path)
         if matched:
@@ -549,9 +537,7 @@ class DynamicNode(RadixNode):
 # Helpers
 # #
 # # # # # # # # # # # # # # # # # # # #
-def node_map(
-    element: Union[utils.DynamicParseNode, str]
-) -> Union[DynamicNode, StaticNode]:
+def node_map(element: utils.DynamicParseNode | str) -> DynamicNode | StaticNode:
     """
     Returns a `DynamicNode` or a `StaticNode` for any `str` or parser passed in.
     """
