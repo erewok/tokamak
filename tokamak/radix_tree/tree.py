@@ -1,5 +1,5 @@
 import enum
-from typing import Any, Dict, Tuple
+from typing import Any
 
 from . import node
 
@@ -32,7 +32,7 @@ class Tree:
 
     def insert(self, path: str, handler: Any) -> None:
         if not path.startswith(self.separator):
-            raise ValueError("Path must start with '{}'".format(self.separator))
+            raise ValueError(f"Path must start with '{self.separator}'")
 
         if (
             self.trailing_slash_match is TrailingSlashMatch.RELAXED
@@ -42,7 +42,7 @@ class Tree:
             path = path[:-1]
         self._root.insert(path, handler)
 
-    def get_handler(self, path: str) -> Tuple[Any, Dict[str, str]]:
+    def get_handler(self, path: str) -> tuple[Any, dict[str, str]]:
         if (
             self.trailing_slash_match is TrailingSlashMatch.RELAXED
             and len(path) > 1
@@ -50,7 +50,7 @@ class Tree:
         ):
             path = path[:-1]
 
-        context: Dict[str, str] = {}
+        context: dict[str, str] = {}
         result, context = self._root.search_path(path, context=context)
         if result and result.leaf and result.leaf.handler:
             return result.leaf.handler, context

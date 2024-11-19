@@ -1,8 +1,20 @@
-from typing import Callable, Dict
-
-import trio
+import logging
+from collections.abc import Callable
 
 from tokamak.web.response import Response
+
+logger = logging.getLogger("tokamak")
+
+try:
+    import trio
+except ImportError:
+    logger.error(
+
+            "To use Tokamak's web properties, "
+            "the library must be installed with option [web]"
+
+    )
+    raise
 
 
 class Request:
@@ -21,8 +33,8 @@ class Request:
 
     def __init__(
         self,
-        context: Dict[str, str],
-        scope: Dict[str, str],
+        context: dict[str, str],
+        scope: dict[str, str],
         receive,
         path: str,
         background_chan: trio._channel.MemorySendChannel,
@@ -37,7 +49,7 @@ class Request:
         self.response_chan = response_chan
 
     @property
-    def app(self) -> "tokamak.web.app.Tokamak":
+    def app(self):
         """
         Returns:
             Tokamak application instance

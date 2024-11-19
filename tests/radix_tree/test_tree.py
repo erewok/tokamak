@@ -1,7 +1,5 @@
-from typing import Optional
 
 import pytest
-
 from tokamak.radix_tree import tree
 
 
@@ -10,7 +8,7 @@ from tokamak.radix_tree import tree
     "tsm", (tree.TrailingSlashMatch.RELAXED, tree.TrailingSlashMatch.STRICT)
 )
 def test_tree_ctor(
-    default_handler: Optional[str], tsm: tree.TrailingSlashMatch
+    default_handler: str | None, tsm: tree.TrailingSlashMatch
 ) -> None:
     new_tree = tree.Tree(default_handler=default_handler, trailing_slash_match=tsm)
     if default_handler:
@@ -24,7 +22,7 @@ def test_tree_ctor(
 @pytest.mark.parametrize(
     "tsm", (tree.TrailingSlashMatch.RELAXED, tree.TrailingSlashMatch.STRICT)
 )
-def test_insert(default_handler: Optional[str], tsm: tree.TrailingSlashMatch) -> None:
+def test_insert(default_handler: str | None, tsm: tree.TrailingSlashMatch) -> None:
     new_tree = tree.Tree(default_handler=default_handler, trailing_slash_match=tsm)
     with pytest.raises(ValueError):
         new_tree.insert("bla", "A")
@@ -41,7 +39,7 @@ def test_insert(default_handler: Optional[str], tsm: tree.TrailingSlashMatch) ->
     "tsm", (tree.TrailingSlashMatch.RELAXED, tree.TrailingSlashMatch.STRICT)
 )
 def test_get_handler(
-    default_handler: Optional[str], tsm: tree.TrailingSlashMatch
+    default_handler: str | None, tsm: tree.TrailingSlashMatch
 ) -> None:
     new_tree = tree.Tree(default_handler=default_handler, trailing_slash_match=tsm)
     new_tree.insert("/bla/{ingredient}", "B")

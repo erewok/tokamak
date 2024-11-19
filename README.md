@@ -61,7 +61,7 @@ from hypercorn.trio import serve
 import trio
 
 from tokamak import AsgiRouter, Route
-from tokamak.router import MethodNotAllowed, UnknownEndpoint
+from tokamak.router import MethodNotAllowedError, UnknownEndpointError
 
 
 # # Fallback Handlers # #
@@ -143,18 +143,18 @@ async def asgi_app(scope, receive, send):
     path = scope.get("path", "")
     try:
         # Routers provider a `get_route` method
-        # If no route is matched, they throw `UnknownEndpoint`
+        # If no route is matched, they throw `UnknownEndpointError`
         # If a route is matched, we'll get path context and a handler
         handler, context = ROUTER.get_route(path)
-    except UnknownEndpoint:
+    except UnknownEndpointError:
         await unknown_handler(scope, receive, send)
         return None
 
     try:
         # If a matched router doesn't handle this method
-        # it will throw `MethodNotAllowed`
+        # it will throw `MethodNotAllowedError`
         await handler(context, scope, receive, send, method=scope.get("method"))
-    except MethodNotAllowed:
+    except MethodNotAllowedError:
       await method_not_allowed(scope, receive, send)
       return None
 

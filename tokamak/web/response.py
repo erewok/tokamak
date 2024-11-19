@@ -1,5 +1,5 @@
+from collections.abc import Callable
 from functools import cached_property
-from typing import Callable, Dict, List, Optional, Tuple
 
 
 class Response:
@@ -19,12 +19,12 @@ class Response:
     def __init__(
         self,
         status_code: int = 200,
-        headers: Optional[Dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
         body: bytes = b"",
         content_type: str = "text/plain",
         charset: str = "utf-8",
         streaming: bool = False,
-        streaming_body: Optional[Callable] = None,
+        streaming_body: Callable | None = None,
     ) -> None:
         self.status_code = status_code
         self.streaming_body = streaming_body
@@ -35,7 +35,7 @@ class Response:
         self.streaming = streaming
 
     @cached_property
-    def raw_headers(self) -> List[Tuple[bytes, bytes]]:
+    def raw_headers(self) -> list[tuple[bytes, bytes]]:
         """Headers are constructed for an ASGI send response"""
         raw_headers = [
             (k.lower().encode("latin-1"), v.encode("latin-1"))

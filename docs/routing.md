@@ -72,20 +72,20 @@ In [12]: context
 Out[12]: {'dir': 'home', 'filepath': 'sshconfig'}
 ```
 
-**Note**: `UnknownEndpoint` will be returned for any route that doesn't match.
+**Note**: `UnknownEndpointError` will be returned for any route that doesn't match.
 
 ```python
 In [13]: router.get_route("/files/home/sshconfig/unknown")
 ---------------------------------------------------------------------------
-UnknownEndpoint                           Traceback (most recent call last)
+UnknownEndpointError                           Traceback (most recent call last)
 Input In [13], in <cell line: 1>()
 ----> 1 router.get_route("/files/home/sshconfig/unknown")
 
 File ~/open_source/tokamak/tokamak/router.py:135, in AsgiRouter.get_route(self, path)
     133 route, context = self.tree.get_handler(path)
     134 if not route:
---> 135     raise UnknownEndpoint(f"Unknown path: {path}")
+--> 135     raise UnknownEndpointError(f"Unknown path: {path}")
     136 return route, context
 
-UnknownEndpoint: Unknown path: /files/home/sshconfig/unknown
+UnknownEndpointError: Unknown path: /files/home/sshconfig/unknown
 ```

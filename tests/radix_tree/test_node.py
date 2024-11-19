@@ -1,11 +1,9 @@
 import random
-import typing
 
 import pytest
+from tokamak.radix_tree import node, Tree, utils
 
-from tokamak.radix_tree import Tree, node, utils
-
-SimpleTree = typing.Tuple[
+SimpleTree = tuple[
     node.StaticNode, node.StaticNode, node.StaticNode, node.StaticNode
 ]
 
@@ -72,7 +70,7 @@ def test_prefix_search_result() -> None:
 # #
 # # # # # # # # # # # # # # # # # # # #
 @pytest.fixture()
-def some_nodes(dynamic_node: node.RadixNode) -> typing.List[node.RadixNode]:
+def some_nodes(dynamic_node: node.RadixNode) -> list[node.RadixNode]:
     nodes = [
         dynamic_node,
         node.DynamicNode(
@@ -88,14 +86,14 @@ def some_nodes(dynamic_node: node.RadixNode) -> typing.List[node.RadixNode]:
     return nodes
 
 
-def test_childset_ctor(some_nodes: typing.List[node.RadixNode]) -> None:
+def test_childset_ctor(some_nodes: list[node.RadixNode]) -> None:
     random.shuffle(some_nodes)
     childset = node.NodeChildSet(some_nodes)
     assert len(childset.static_nodes) == 2
     assert len(childset.dynamic_nodes) == 2
 
 
-def test_childset_add(some_nodes: typing.List[node.RadixNode]) -> None:
+def test_childset_add(some_nodes: list[node.RadixNode]) -> None:
     childset = node.NodeChildSet(some_nodes)
     # We will make some unlikely nodes here in order to test the swap
     childset.add(node.StaticNode("{test}"))
@@ -108,7 +106,7 @@ def test_childset_add(some_nodes: typing.List[node.RadixNode]) -> None:
     assert len(childset) == 4
 
 
-def test_childset_discard(some_nodes: typing.List[node.RadixNode]) -> None:
+def test_childset_discard(some_nodes: list[node.RadixNode]) -> None:
     childset = node.NodeChildSet(some_nodes)
     childset.discard(some_nodes[1])
     assert len(childset.dynamic_nodes) == 1
@@ -121,7 +119,7 @@ def test_childset_discard(some_nodes: typing.List[node.RadixNode]) -> None:
     assert len(childset) == 2
 
 
-def test_various_dunder(some_nodes: typing.List[node.RadixNode]) -> None:
+def test_various_dunder(some_nodes: list[node.RadixNode]) -> None:
     childset = node.NodeChildSet(some_nodes)
     child_list = list(childset)
     for item in child_list[:2]:
@@ -163,7 +161,7 @@ def test_radix_node_dunder(static_node: node.StaticNode) -> None:
     assert "0" in as_str
 
     as_repr = repr(static_node)
-    assert "'{}'".format(static_node.path) in as_repr
+    assert f"'{static_node.path}'" in as_repr
 
     assert len(static_node) == 2
     assert len(sn3) == 1
@@ -233,17 +231,15 @@ def test_large_tree_search_path_static_paths(
 ) -> None:
     found_node, ctx = large_tree._root.search_path(path)
     if has_handler:
-        msg = "Expected handler for path {}".format(path)
+        msg = f"Expected handler for path {path}"
         assert found_node is not None and found_node.leaf is not None, msg
-        assert found_node.path == node_path, "Path should be {}, not {}".format(
-            found_node.path, path
-        )
+        assert found_node.path == node_path, f"Path should be {found_node.path}, not {path}"
         assert found_node.leaf.handler is not None
         assert not ctx
     else:
         assert (
             found_node is None or found_node.leaf is None
-        ), "Expected no handler for path {}".format(path)
+        ), f"Expected no handler for path {path}"
 
 
 @pytest.mark.parametrize(
@@ -298,17 +294,15 @@ def test_large_tree_search_path_dynamic_paths(  # type: ignore
 ):
     found_node, ctx = large_tree._root.search_path(path)
     if has_handler:
-        msg = "Expected handler for path {}".format(path)
+        msg = f"Expected handler for path {path}"
         assert found_node is not None and found_node.leaf is not None, msg
-        assert found_node.path == node_path, "Path should be {}, not {}".format(
-            found_node.path, path
-        )
+        assert found_node.path == node_path, f"Path should be {found_node.path}, not {path}"
         assert found_node.leaf.handler is not None
         assert params == ctx
     else:
         assert (
             found_node is None or found_node.leaf is None
-        ), "Expected no handler for path {}".format(path)
+        ), f"Expected no handler for path {path}"
 
 
 def test_radix_tree_prefix_search_static(simple_tree: SimpleTree) -> None:
@@ -333,7 +327,7 @@ def test_radix_tree_prefix_search_dynamic(
     new_slash_node = pany_parent.insert_node(node.StaticNode("/"))
     new_slash_node.insert_node(dynamic_node)
 
-    result = list(root.prefix_search("/company/{}".format(pattern)))
+    result = list(root.prefix_search(f"/company/{pattern}"))
     assert len(result) == 6
     assert result[0].node is dynamic_node
     assert result[1].node is new_slash_node
@@ -373,9 +367,9 @@ def test_radix_tree_search_path_dynamic(
     ),
 )
 def test_radix_tree_prefix_search_large(
-    path: str, parent_paths: typing.List[str], large_tree: Tree
+    path: str, parent_paths: list[str], large_tree: Tree
 ) -> None:
-    expected_answer_iter = zip(parent_paths, large_tree._root.prefix_search(path))
+    expected_answer_iter = zip(parent_paths, large_tree._root.prefix_search(path), strict=False)
     for expected, psr in expected_answer_iter:
         assert expected == psr.node.path
 
@@ -458,7 +452,7 @@ def test_dyn_node_init_and_clone(dynamic_node: node.DynamicNode) -> None:
     ),
 )
 def test_node_map(element, result):  # type: ignore
-    if result == ValueError:
+    if result is ValueError:
         with pytest.raises(result):
             node.node_map(element)
     else:

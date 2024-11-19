@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional, Tuple
+from collections.abc import Callable, Iterable
 
 from tokamak import methods as tokmethods
 from tokamak.radix_tree import tree
@@ -8,11 +8,11 @@ class RouterError(ValueError):
     pass
 
 
-class UnknownEndpoint(RouterError):
+class UnknownEndpointError(RouterError):
     pass
 
 
-class MethodNotAllowed(RouterError):
+class MethodNotAllowedError(RouterError):
     pass
 
 
@@ -36,15 +36,15 @@ class Route:
     def __init__(
         self,
         path: str = "",
-        handler: Optional[Callable] = None,
-        methods: Optional[Iterable[str]] = None,
+        handler: Callable | None = None,
+        methods: Iterable[str] | None = None,
     ):
         if handler is None:
-            raise ValueError("Missing `handler` function for path: {}".format(path))
+            raise ValueError(f"Missing `handler` function for path: {path}")
         self.handler = handler
         self.path = path
         self.methods = (
-            set((m.upper() for m in methods))
+            set(m.upper() for m in methods)
             if methods
             else {tokmethods.Method.GET.value}
         )
@@ -54,7 +54,7 @@ class Route:
 
     async def __call__(self, *args, method=tokmethods.Method.GET.value, **kwargs):
         if not self.can_handle(method):
-            raise MethodNotAllowed(f"{method} not allowed for {self.path}")
+            raise MethodNotAllowedError(f"{method} not allowed for {self.path}")
         return await self.handler(*args, **kwargs)
 
 
@@ -92,7 +92,7 @@ class AsgiRouter:
 
     def __init__(
         self,
-        routes: Optional[Iterable[Route]] = None,
+        routes: Iterable[Route] | None = None,
         trailing_slash_match: tree.TrailingSlashMatch = tree.TrailingSlashMatch.RELAXED,
     ):
         self.tree = tree.Tree(trailing_slash_match=trailing_slash_match)
@@ -118,7 +118,7 @@ class AsgiRouter:
         """
         self.tree.insert(route.path, route)
 
-    def get_route(self, path: str) -> Tuple[Route, dict[str, str]]:
+    def get_route(self, path: str) -> tuple[Route, dict[str, str]]:
         """
         Search for a matching route by path.
 
@@ -128,9 +128,9 @@ class AsgiRouter:
         Returns:
             Tuple[Router, context-dictionary]
 
-        Raises `UnknownEndpoint` if no path matched.
+        Raises `UnknownEndpointError` if no path matched.
         """
         route, context = self.tree.get_handler(path)
         if not route:
-            raise UnknownEndpoint(f"Unknown path: {path}")
+            raise UnknownEndpointError(f"Unknown path: {path}")
         return route, context

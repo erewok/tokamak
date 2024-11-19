@@ -1,7 +1,7 @@
 import logging
 import traceback
+from collections.abc import Awaitable, Callable
 from functools import partial
-from typing import Awaitable, Callable, Optional
 
 from tokamak import methods, router
 from tokamak.web import errors
@@ -14,10 +14,8 @@ try:
     import trio
 except ImportError:
     logger.error(
-        (
-            "To use Tokamak's web properties, "
-            "the library must be installed with option [web]"
-        )
+        "To use Tokamak's web properties, "
+        "the library must be installed with option [web]"
     )
     raise
 
@@ -59,13 +57,13 @@ class Tokamak:
 
     def __init__(
         self,
-        router: Optional[router.AsgiRouter] = None,
-        background_task_time_limit: Optional[int] = None,
+        router: router.AsgiRouter | None = None,
+        background_task_time_limit: int | None = None,
         background_task_limit: int = 1000,
-        request_time_limit: Optional[int] = None,
-        cancelled_request_handler: Optional[
-            Callable[[Request], Awaitable[Response]]
-        ] = errors.default_cancelled_request_handler,
+        request_time_limit: int | None = None,
+        cancelled_request_handler: (
+            Callable[[Request], Awaitable[Response]] | None
+        ) = errors.default_cancelled_request_handler,
         lifespan: Callable[["Tokamak", str], Awaitable["Tokamak"]] = lifespan_identity,
     ):
         self.router = router
@@ -130,7 +128,7 @@ class Tokamak:
         path: str = scope.get("path", "")
         try:
             route, context = self.router.get_route(path)
-        except router.UnknownEndpoint:
+        except router.UnknownEndpointError:
             await unknown_handler(scope, receive, send)
             return None
 

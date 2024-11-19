@@ -9,27 +9,63 @@ on:
       - '*.rst'
 jobs:
   tests:
-    name: "Python ${{ matrix.python-version }}"
-    runs-on: "ubuntu-latest"
     env:
-      CODECOV_UPLOAD: false
-      POETRY_VERSION: "1.1.14"
-      PYPI_PUBLISH: false
-
-    strategy:
-      matrix:
-        os: ["ubuntu-latest", "windows-latest"]
-        python-version: ["3.9", "3.10"]
+      COVERAGE_DIR: ${{ format('/tmp/coverage/{0}', github.run_id) }}
+    permissions:
+        checks: write
+        contents: read
+        pull-requests: write
+    runs-on: ubuntu-latest
     steps:
-      - uses: "actions/checkout@v3"
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: just
+
       - uses: "actions/setup-python@v4"
         with:
-          python-version: "${{ matrix.python-version }}"
-      - name: "Install poetry"
-        run: "pip install poetry"
-      - name: "Configure poetry"
-        run: "poetry config virtualenvs.create false --local"
-      - name: "Run poetry update"
-        run: "poetry update"
-      - name: "Run tests"
-        run: "scripts/run_tests.sh"
+          python-version: "3.12"
+
+      - name: Set up uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: "bootstrap"
+        run: |
+          cd ${{ github.workspace }}
+          just bootstrap
+      - name: Code quality checks
+        run: |
+          cd ${{ github.workspace }}
+          just check
+      - name: Run tests
+        run: |
+          cd ${{ github.workspace }}
+          just ci-test ${COVERAGE_DIR}
+
+      # Publish code coverage results
+      - name: Code Coverage Report
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage.xml
+          badge: true
+          fail_below_min: false
+          format: markdown
+          hide_branch_rate: false
+          hide_complexity: true
+          indicators: true
+          output: both
+          thresholds: '70 80'
+
+      - name: Add Coverage PR Comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: code-coverage-results.md
+
+      # Publish junit test result
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        with:
+          report_paths: ${{ format('/tmp/coverage/{0}/*junit.xml', github.run_id) }}
