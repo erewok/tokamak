@@ -134,6 +134,7 @@ PATHS = [
     "/repos/{owner}/{repo}/statuses/{sha}",
     "/repos/{owner}/{repo}/commits/{ref}/statuses",
     "/repos/{owner}/{repo}/commits/{ref}/status",
+    "/repos/{owner}/{repo}/commits/{ref}",
     "/search/repositories",
     "/search/code",
     "/search/issues",

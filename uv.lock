@@ -982,7 +982,7 @@ version = "0.6.0"
 source = { editable = "." }
 
 [package.optional-dependencies]
-benchmark = [
+benchmarks = [
     { name = "werkzeug" },
 ]
 docs = [
@@ -999,6 +999,7 @@ docs = [
 examples = [
     { name = "hypercorn" },
     { name = "starlette" },
+    { name = "trio" },
 ]
 web = [
     { name = "trio" },
@@ -1029,8 +1030,9 @@ requires-dist = [
     { name = "mkdocs-section-index", marker = "extra == 'docs'", specifier = ">=0.3.9" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=0.27.0" },
     { name = "starlette", marker = "extra == 'examples'" },
+    { name = "trio", marker = "extra == 'examples'" },
     { name = "trio", marker = "extra == 'web'" },
-    { name = "werkzeug", marker = "extra == 'benchmark'", git = "https://github.com/pallets/werkzeug.git?branch=main" },
+    { name = "werkzeug", marker = "extra == 'benchmarks'", git = "https://github.com/pallets/werkzeug.git?branch=main" },
 ]
 
 [package.metadata.requires-dev]
