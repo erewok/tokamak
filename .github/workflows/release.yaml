@@ -23,11 +23,6 @@ jobs:
     - name: Set up uv
       run: curl -LsSf https://astral.sh/uv/install.sh | sh
     - name: Install pypa/build
-      run: uv run build
-    - name: Store the distribution packages
-      uses: actions/upload-artifact@v4
-      with:
-        name: python-package-distributions
-        path: dist/
+      run: just build
     - name: Publish distribution 📦 to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1

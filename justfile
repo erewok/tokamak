@@ -39,6 +39,10 @@ test *args:
 ci-test coverage_dir='./coverage':
     uv run pytest --cov=tokamak --cov-report xml --junitxml=./coverage/unittest.junit.xml
 
-# Run the API server
-examples name:
-    uv run --examples {{name}}
+# Run an example
+example name:
+    uv run --extra examples python examples/{{name}}.py
+
+# Run the benchmark
+benchmark:
+    uv run --extra benchmarks python -m benchmark.compare_werkzeug

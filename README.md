@@ -190,7 +190,7 @@ This example relies on the following dependencies:
 If we have these dependencies in our Python environment, we can run this simple script:
 
 ```sh
-$ poetry run python examples/asgi_minimal.py
+$ python examples/asgi_minimal.py
 [2022-03-20 16:59:58 -0700] [91988] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
 ```
 
@@ -215,36 +215,58 @@ OK
 
 **Note**: that our regex path _does not_ match capital letters, so that request 404s.
 
-## Examples
+## For Contributors
 
-Runnable examples are provided in the [`examples` directory](https://github.com/erewok/tokamak/examples). For instance, you can run the experimental `tokamak` application with `trio` and `hypercorn` like so:
+This project uses `uv` for managing dependencies and virtual environments.
+
+In addition, to contribute to this project, we recommend using `just`: https://github.com/casey/just
+
+You can run various common workflows using the above tools, try the following:
 
 ```sh
-$ poetry install -E "full"
-Installing dependencies from lock file
+❯ just
+just --list
+Available recipes:
+    benchmark                         # Run the benchmark
+    bootstrap default="3.12"          # Install dependencies used by this project
+    build *args                       # Build the project as a package (uv build)
+    check                             # Run code quality checks
+    check-types                       # Run mypy checks
+    ci-test coverage_dir='./coverage' # Run the project tests for CI environment (e.g. with code coverage)
+    example name                      # Run an example
+    format                            # Run the code formatter
+    sync                              # Sync dependencies with environment
+    test *args                        # Run all tests locally
 
-Package operations: 8 installs, 0 updates, 0 removals
+❯ just check
++ uv run ruff check tokamak tests
+All checks passed!
 
-  • Installing h11 (0.13.0)
-  • Installing hpack (4.0.0)
-  • Installing hyperframe (6.0.1)
-  • Installing h2 (4.1.0)
-  • Installing priority (2.0.0)
-  • Installing toml (0.10.2)
-  • Installing wsproto (1.1.0)
-  • Installing hypercorn (0.13.2)
+❯ just test
++ uv run pytest
+...
 
-Installing the current project: tokamak (0.2.1)
-❯ poetry run python examples/tokamak_app.py
+```
+
+### Examples
+
+Runnable examples are provided in the [`examples` directory](https://github.com/erewok/tokamak/examples). In addition, this project includes a [`justfile`](./justfile) (see [just](https://github.com/casey/just)) for easily running examples.
+
+For instance, you can run the experimental `tokamak` application with `trio` and `hypercorn` like so:
+
+```sh
+$  just example tokamak_app
+uv run --extra examples python examples/tokamak_app.py
+Installed 13 packages in 5.55s
 ========·°·°~> Starting tokamak °°···°°🚀···°°
-[2022-03-20 11:05:01 -0700] [63023] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
+[2024-11-19 09:01:24 -0800] [32768] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
 ```
 
 In a separate terminal, you can make various requests, such as the following:
 
 ```sh
 ❯ curl http://localhost:8000
-{"received": {}}
+ok
 
 ❯ curl http://localhost:8000/info/erik -d '{"some_data": "something"}'
 {"received": {"some_data": "something"}}
@@ -253,22 +275,48 @@ In a separate terminal, you can make various requests, such as the following:
 Back in the first terminal, where you launched the example `tokamak` application, you should see the following:
 
 ```sh
-❯ poetry run python examples/tokamak_app.py
+❯ just example tokamak_app
+uv run --extra examples python examples/tokamak_app.py
+Installed 13 packages in 5.55s
 ========·°·°~> Starting tokamak °°···°°🚀···°°
-[2022-03-20 11:05:01 -0700] [63023] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
-{} {'type': 'http', 'http_version': '1.1', 'asgi': {'spec_version': '2.1', 'version': '3.0'}, 'method': 'GET', 'scheme': 'http', 'path': '/', 'raw_path': b'/', 'query_string': b'', 'root_path': '', 'headers': <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*')])>, 'client': ('127.0.0.1', 55379), 'server': ('127.0.0.1', 8000), 'extensions': {}} <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*')])> b'' 1.1 GET
-Sleeping 1s for total seconds: 0
-Sleeping 1s for total seconds: 1
-Sleeping 1s for total seconds: 2
-Sleeping 1s for total seconds: 3
-Sleeping 1s for total seconds: 4
-{'user': 'erik'} {'type': 'http', 'http_version': '1.1', 'asgi': {'spec_version': '2.1', 'version': '3.0'}, 'method': 'POST', 'scheme': 'http', 'path': '/info/erik', 'raw_path': b'/info/erik', 'query_string': b'', 'root_path': '', 'headers': <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*'), (b'content-length', b'26'), (b'content-type', b'application/x-www-form-urlencoded')])>, 'client': ('127.0.0.1', 55386), 'server': ('127.0.0.1', 8000), 'extensions': {}} <Headers([(b'host', b'localhost:8000'), (b'user-agent', b'curl/7.81.0'), (b'accept', b'*/*'), (b'content-length', b'26'), (b'content-type', b'application/x-www-form-urlencoded')])> b'' 1.1 POST
-Sleeping 1s for total seconds: 0
-Sleeping 1s for total seconds: 5
-Sleeping 1s for total seconds: 1
-Sleeping 1s for total seconds: 6
-Sleeping 1s for total seconds: 2
-Sleeping 1s for total seconds: 7
-Sleeping 1s for total seconds: 3
-Sleeping 1s for total seconds: 8
+[2024-11-19 09:01:24 -0800] [32768] [INFO] Running on http://127.0.0.1:8000 (CTRL + C to quit)
+request.app.db={}, request.context={'user': 'erik'}, request.scope={'type': 'http', 'http_version': '1.1', 'asgi': {'spec_version': '2.1', 'version': '3.0'}, 'method': 'POST', 'scheme': 'http', 'path': '/info/erik', 'raw_path': b'/info/erik', 'query_string': b'', 'root_path': '', 'headers': [(b'host', b'localhost:8000'), (b'user-agent', b'curl/8.7.1'), (b'accept', b'*/*'), (b'content-length', b'26'), (b'content-type', b'application/x-www-form-urlencoded')], 'client': ('127.0.0.1', 63965), 'server': ('127.0.0.1', 8000), 'state': {}, 'extensions': {}, 'app': <tokamak.web.app.Tokamak object at 0x11865c4a0>}, headers=[(b'host', b'localhost:8000'), (b'user-agent', b'curl/8.7.1'), (b'accept', b'*/*'), (b'content-length', b'26'), (b'content-type', b'application/x-www-form-urlencoded')], qparams=b'', http_version='1.1', method='POST'
+Sleeping 1s for total iterations: 0
+Sleeping 1s for total iterations: 1
+Sleeping 1s for total iterations: 2
+```
+
+## Benchmark
+
+This project was iniatated around the time that the router for [`Werkzeug`](https://github.com/pallets/werkzeug.git) (which powers Flask) was rewritten as well. That router was redesigned to use a modified Radix Tree and so we created a benchmark to compare their implementation with this one.
+
+To run the benchmark against Werkzeug `main`, run the following:
+
+```sh
+uv run --extra benchmarks python -m benchmark.compare_werkzeug
+Path                                                                   | Ratio (percent difference from baseline)
+Tokamak Tree is quicker: /users/{username}/following                                            | 0.64
+Werkzeug Tree is quicker: /repos/{owner}/{repo}/downloads                                        | 0.80
+Werkzeug Tree is quicker: /repos/{owner}/{repo}/hooks/{id}/pings                                 | 0.70
+...
+
+****** TIMING STATISTICS TOKAMAK FASTER THAN BASELINE ******
+Better Total 5270
+Best improvement (min vs baseline) 0.12283152787580384 for path /
+Mean Improvement:  0.6338085629349435
+Median Improvement:  0.618251951398763
+Std Dev Improvements:  0.18516141441278625
+Mean Path Length:  19.97020872865275
+Mean Dynamic Segment Count:  0.6757115749525616
+****** TIMING STATISTICS TOKAMAK END ******
+
+****** TIMING STATISTICS WERKZEUG FASTER THAN BASELINE ******
+Better Total 4730
+Best improvement (min vs baseline) 0.23255522605196324 for path /repos/{owner}/{repo}/labels/{name}
+Mean Improvement:  0.6003032685655771
+Median Improvement:  0.5382439859668042
+Std Dev Improvements:  0.20348200780749615
+Mean Path Length:  36.14545454545455
+Mean Dynamic Segment Count:  2.468076109936575
+****** TIMING STATISTICS WERKZEUG END ******
 ```
